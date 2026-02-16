@@ -341,7 +341,7 @@ def generate_m3u(channels):
         props = build_kodi_props(ch)
         tvg_id = re.sub(r"[^A-Za-z0-9]", "", ch["title"]).lower()
 
-        m3u += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{DEFAULT_LOGO}" group-title="LAST MINUTE",{ch["title"]}\n'
+        m3u += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{DEFAULT_LOGO}" group-title="ULTIMO MINUTO",{ch["title"]}\n'
         for p in props:
             m3u += p + "\n"
         m3u += ch["url"] + "\n\n"
