@@ -1,4 +1,6 @@
 name: am scraper
+# permissions:
+#   contents: write
 
 on:
   workflow_dispatch:
@@ -43,11 +45,27 @@ jobs:
         run: |
           python am_sk.py
 
-      - name: Delete release and tag
-        uses: ClementTsang/delete-tag-and-release@v0.3.1
-        with:
-          delete_release: true
-          tag_name: 1.0.0
+      # - name: Check whether tag '1.0.0' exists
+      #   id: tag_check
+      #   run: |
+      #     # fetch remote refs and check for the tag; set output for later conditional
+      #     if git ls-remote --tags origin refs/tags/1.0.0 | grep -q 'refs/tags/1.0.0'; then
+      #       echo "exists=true" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "exists=false" >> $GITHUB_OUTPUT
+      #     fi
+
+      # - name: Delete release and tag
+      #   if: steps.tag_check.outputs.exists == 'true'
+      #   uses: ClementTsang/delete-tag-and-release@v0.3.1
+      #   with:
+      #     delete_release: true
+      #     tag_name: 1.0.0
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete tag
+        run: gh release delete "1.0.0" --cleanup-tag --yes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
