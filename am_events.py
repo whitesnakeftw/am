@@ -9,8 +9,8 @@ import requests
 
 DEBUG = True
 
-DEFAULT_LOGO = "https://viverediturismofestival.it/wp-content/uploads/2025/10/Sponsor-piccolopartner-2025-10-24T180159.016.png"
-OUTPUT_M3U = "sport_lastminute.m3u8"
+DEFAULT_LOGO = ""
+OUTPUT_M3U = "last_minute.m3u8"
 
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
 
@@ -77,14 +77,14 @@ def decode_amstaff_raw(encoded):
 
     if "|" in decoded and ":" in decoded:
         url, rest = decoded.split("|", 1)
-        key_id, key = rest.split(":", 1)
+        key_id, key = [s.strip() for s in rest.split(":", 1)]
         log(f"AMSTAFF OK → {url}", "OK")
         return {"type": "amstaff", "url": url, "key_id": key_id, "key": key}
 
     if "key_id=" in decoded and "key=" in decoded:
         url = decoded.split("|")[0]
-        kid = re.search(r"key_id=([A-Za-z0-9-_]+)", decoded).group(1)
-        key = re.search(r"key=([A-Za-z0-9-_/=]+)", decoded).group(1)
+        kid = re.search(r"key_id=([A-Za-z0-9-_]+)", decoded).group(1).strip()
+        key = re.search(r"key=([A-Za-z0-9-_/=]+)", decoded).group(1).strip()
         log(f"AMSTAFF OK (query) → {url}", "OK")
         return {"type": "amstaff", "url": url, "key_id": kid, "key": key}
 
@@ -110,7 +110,13 @@ def extract_from_url(url):
     if m2:
         key = m2.group(1)
 
-    return {"type": "direct", "url": url, "key_id": key_id, "key": key}
+    match_key_after_pipe = re.search(r'http.+\|([a-f0-9]{32}):([a-f0-9]{32})', url, re.IGNORECASE)
+    if match_key_after_pipe:
+        key_id = match_key_after_pipe.group(1)
+        key = match_key_after_pipe.group(2)
+        url = re.search(r'http[^|]+', url).group(0)
+
+    return {"type": "direct", "url": url.strip(), "key_id": key_id.strip(), "key": key.strip()}
 
 
 def extract_from_url_fallback(value):
@@ -171,6 +177,10 @@ def decode_stream(value):
         return extract_from_url(value)
 
     if ".mpd" in value or ".m3u8" in value:
+        if value.startswith('amstaff@@'):
+            value = value.replace('amstaff@@', '').replace('|0000', '')
+        elif value.startswith('ffmpeg@@'):
+            value = value.replace('ffmpeg@@', '')
         return extract_from_url(value if value.startswith("http") else "https://" + value)
 
     if value.startswith("{") and value.endswith("}"):

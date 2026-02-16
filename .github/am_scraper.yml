@@ -1,0 +1,67 @@
+name: am scraper
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekdays (UTC times)
+    - cron: '0 10 * * 1-5'
+    - cron: '0 19 * * 1-5'
+    # Weekends: Sat & Sun (UTC times)
+    - cron: '15 11 * * 6,0'
+    - cron: '50 13 * * 6,0'
+    - cron: '50 16 * * 6,0'
+    - cron: '55 18 * * 6,0'
+    - cron: '40 19 * * 6,0'
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository with custom token
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTIONS_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install cloudscraper beautifulsoup4
+
+      - name: Run events scraper
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          python am_events.py
+      
+      - name: Run sk scraper
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          python am_sk.py
+
+      - name: Delete release and tag
+        uses: ClementTsang/delete-tag-and-release@v0.3.1
+        with:
+          delete_release: true
+          tag_name: 1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "*.m3u8"
+          allowUpdates: true
+          generateReleaseNotes: false
+          replacesArtifacts: true
+          removeArtifacts: true
+          prerelease: false
+          draft: false
+          makeLatest: true
+          tag: 1.0.0

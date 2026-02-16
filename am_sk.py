@@ -57,7 +57,7 @@ CHANNELS_DB = {
     "sport258": {"nome": "Sky Sport 258", "logo": "https://pixel.disco.nowtv.it/logo/skychb_912_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Sport"},
     "sport259": {"nome": "Sky Sport 259", "logo": "https://pixel.disco.nowtv.it/logo/skychb_613_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Sport"},
     "dazn": {"nome": "Dazn 1", "logo": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Tv-channel-%E2%94%82-dazn-1.png", "group": "Sky Sport"},
-    
+
 
 
     "uno": {"nome": "Sky Uno", "logo": "https://pixel.disco.nowtv.it/logo/skychb_477_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Intrattenimento"},
@@ -97,8 +97,10 @@ def clean_m3u_text(text):
     text = re.sub(r"\[/?COLOR[^\]]*\]", "", text, flags=re.IGNORECASE)
     return re.sub(r"\s+", " ", text).strip()
 
+
 def normalize(text):
     return re.sub(r"[^a-z0-9]", "", text.lower())
+
 
 def match_channel(title):
     key = normalize(title)
@@ -110,6 +112,7 @@ def match_channel(title):
 # ==============================
 # DECODE AMSTAFF
 # ==============================
+
 
 def decode_amstaff(encoded):
     if encoded.startswith("amstaff@@"):
@@ -135,6 +138,7 @@ def decode_amstaff(encoded):
 # FETCH (FIX JSON)
 # ==============================
 
+
 def extract_with_regex(text):
     results = []
     pattern = re.compile(
@@ -144,6 +148,7 @@ def extract_with_regex(text):
     for title, myresolve in pattern.findall(text):
         results.append((title, myresolve))
     return results
+
 
 def fetch_amstaff_channels():
     r = requests.get(
@@ -186,6 +191,7 @@ def fetch_amstaff_channels():
 # M3U
 # ==============================
 
+
 def generate_m3u(channels):
     m3u = "#EXTM3U\n\n"
 
@@ -218,6 +224,7 @@ def generate_m3u(channels):
 # ==============================
 # MAIN
 # ==============================
+
 
 if __name__ == "__main__":
     channels = fetch_amstaff_channels()
