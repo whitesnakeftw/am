@@ -1,0 +1,62 @@
+name: tw scraper
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '58 19 * * *'
+
+env:
+  RELEASE_TAG: 'tw'
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install streamlink
+
+      - name: Run scraper
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          python tw.py
+
+      - name: Check whether tag exists # only needed for the first run
+        id: tag_check
+        run: |
+          # fetch remote refs and check for the tag; set output for later conditional
+          if git ls-remote --tags origin refs/tags/$RELEASE_TAG | grep -q "refs/tags/$RELEASE_TAG"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Delete release andtag
+        if: steps.tag_check.outputs.exists == 'true'
+        run: gh release delete "$RELEASE_TAG" --cleanup-tag --yes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "*.m3u8"
+          allowUpdates: true
+          generateReleaseNotes: false
+          replacesArtifacts: true
+          removeArtifacts: true
+          prerelease: false
+          draft: false
+          makeLatest: true
+          tag: ${{ env.RELEASE_TAG }}
