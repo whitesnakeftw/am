@@ -7,16 +7,15 @@ import requests
 # CONFIG
 # ==============================
 
-DEFAULT_LOGO = "https://skygo.sky.it/etc/designs/skygo/img/sky-logo@2x.png"
+DEBUG = False
+
 OUTPUT_M3U = "sky.m3u8"
 TVG_URL = "https://github.com/whitesnakeftw/epg/releases/download/1.0.0/super.guide.xml.gz"
-
 AMSTAFF_URL = "https://test34344.herokuapp.com/filter.php"
 
 PASSWORD = "MandraKodi3"
 DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
-
 USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
 
 # ==============================
@@ -139,11 +138,11 @@ def decode_amstaff(encoded):
 def extract_with_regex(text):
     results = []
     pattern = re.compile(
-        r'"title"\s*:\s*"([^"]+)"[\s\S]*?"myresolve"\s*:\s*"([^"]+)"',
+        r'"title"\s*:\s*"([^"]+)"[\s\S]*?"thumbnail"\s*:\s*"([^"]+)"[\s\S]*?"myresolve"\s*:\s*"([^"]+)"',
         re.IGNORECASE
     )
-    for title, myresolve in pattern.findall(text):
-        results.append((title, myresolve))
+    for title, thumbnail, myresolve in pattern.findall(text):
+        results.append((title, myresolve, thumbnail))
     return results
 
 
@@ -156,6 +155,9 @@ def fetch_amstaff_channels():
     )
 
     text = r.text.strip()
+
+    if DEBUG:
+        print('\n\n', text, '\n\n')
 
     try:
         data = json.loads(text)
@@ -174,7 +176,7 @@ def fetch_amstaff_channels():
     def walk(o):
         if isinstance(o, dict):
             if "title" in o and "myresolve" in o:
-                found.append((o["title"], o["myresolve"]))
+                found.append((o["title"], o["myresolve"], o.get("thumbnail", "")))
             for v in o.values():
                 walk(v)
         elif isinstance(o, list):
@@ -192,8 +194,8 @@ def fetch_amstaff_channels():
 def generate_m3u(channels):
     m3u = f'#EXTM3U url-tvg="{TVG_URL}"\n\n'
 
-    # Helper to process a single (title, encoded) entry and append it to m3u
-    def _process_item(raw_title, encoded_item):
+    # Helper to process a single (title, encoded, thumbnail) entry and append it to m3u
+    def _process_item(raw_title, encoded_item, thumbnail=""):
         title = clean_m3u_text(raw_title)
 
         decoded = decode_amstaff(encoded_item)
@@ -205,7 +207,7 @@ def generate_m3u(channels):
         meta = match_channel(title)
 
         name = clean_m3u_text(meta["nome"] if meta else title)
-        logo = meta["logo"] if meta else DEFAULT_LOGO
+        logo = meta["logo"] if meta else thumbnail
         group = meta["group"] if meta else "Altro"
         tvg_id = name.replace(" ", '') + '.it'
 
@@ -222,7 +224,7 @@ def generate_m3u(channels):
     # find the first remaining fetched channel that matches it and output it
     for db_key, db_meta in CHANNELS_DB.items():
         found_index = None
-        for idx, (title, encoded) in enumerate(remaining):
+        for idx, (title, encoded, thumbnail) in enumerate(remaining):
             matched = match_channel(title)
             # match_channel returns the same dict object from CHANNELS_DB when matched
             if matched is db_meta:
@@ -230,12 +232,12 @@ def generate_m3u(channels):
                 break
 
         if found_index is not None:
-            title, encoded = remaining.pop(found_index)
-            _process_item(title, encoded)
+            title, encoded, thumbnail = remaining.pop(found_index)
+            _process_item(title, encoded, thumbnail)
 
     # Append any remaining channels that weren't in CHANNELS_DB or didn't match
-    for title, encoded in remaining:
-        _process_item(title, encoded)
+    for title, encoded, thumbnail in remaining:
+        _process_item(title, encoded, thumbnail)
 
     with open(OUTPUT_M3U, "w", encoding="utf-8") as f:
         f.write(m3u)
