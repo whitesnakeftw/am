@@ -1,364 +1,113 @@
 import base64
-import json
+import binascii
 import re
 import requests
 
-# ==============================
-# CONFIG
-# ==============================
-
-DEBUG = True
-
-DEFAULT_LOGO = ""
-OUTPUT_M3U = "last_minute.m3u8"
-
+OUTFILE = "last_minute.m3u8"
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
-
 PASSWORD = "MandraKodi3"
 DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
 USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
-
-
-# ==============================
-# LOGGER
-# ==============================
-
-def log(msg, level="INFO"):
-    if DEBUG:
-        print(f"[{level}] {msg}")
-
-
-# ==============================
-# UTILITY
-# ==============================
-
-def clean_title(t):
-    return re.sub(r"\[/?[A-Z]+[^\]]*\]", "", t, flags=re.IGNORECASE).strip()
-
-
-# =====================================================
-# DECODER AMSTAFF RAW
-# =====================================================
-
-def decode_amstaff_raw(encoded):
-    log("Tentativo decode AMSTAFF", "AMSTAFF")
-
-    prefixes = ["amstaff@@", "amstaffd@@", "amstaf@@", "mstf@@"]
-    for p in prefixes:
-        if encoded.lower().startswith(p):
-            encoded = encoded[len(p):]
-
-    encoded = encoded.replace("\n", "").replace("\r", "")
-    attempts = []
-
-    def try_decode(s):
-        try:
-            missing = len(s) % 4
-            if missing:
-                s += "=" * (4 - missing)
-            d = base64.b64decode(s).decode("utf-8", "ignore")
-            if d:
-                attempts.append(d)
-        except:
-            pass
-
-    try_decode(encoded)
-    try_decode(re.sub(r"[^A-Za-z0-9+/=]", "", encoded))
-
-    if not attempts:
-        log("Decode AMSTAFF fallito", "DROP")
-        return None
-
-    decoded = attempts[0]
-
-    if "##" in decoded:
-        decoded = decoded.split("##")[0]
-
-    if "|" in decoded and ":" in decoded:
-        url, rest = decoded.split("|", 1)
-        key_id, key = [s.strip() for s in rest.split(":", 1)]
-        log(f"AMSTAFF OK → {url}", "OK")
-        return {"type": "amstaff", "url": url, "key_id": key_id, "key": key}
-
-    if "key_id=" in decoded and "key=" in decoded:
-        url = decoded.split("|")[0]
-        kid = re.search(r"key_id=([A-Za-z0-9-_]+)", decoded).group(1).strip()
-        key = re.search(r"key=([A-Za-z0-9-_/=]+)", decoded).group(1).strip()
-        log(f"AMSTAFF OK (query) → {url}", "OK")
-        return {"type": "amstaff", "url": url, "key_id": kid, "key": key}
-
-    log("AMSTAFF decodificato ma non valido", "DROP")
-    return None
-
-
-# =====================================================
-# URL PARSER
-# =====================================================
-
-def extract_from_url(url):
-    log(f"URL diretta → {url}", "URL")
-
-    key_id = ""
-    key = ""
-
-    m1 = re.search(r"key_id=([A-Za-z0-9-_]+)", url)
-    m2 = re.search(r"key=([A-Za-z0-9-_/=]+)", url)
-
-    if m1:
-        key_id = m1.group(1)
-    if m2:
-        key = m2.group(1)
-
-    match_key_after_pipe = re.search(r'http.+\|([a-f0-9]{32}):([a-f0-9]{32})', url, re.IGNORECASE)
-    if match_key_after_pipe:
-        key_id = match_key_after_pipe.group(1)
-        key = match_key_after_pipe.group(2)
-        url = re.search(r'http[^|]+', url).group(0)
-
-    return {"type": "direct", "url": url.strip(), "key_id": key_id.strip(), "key": key.strip()}
-
-
-def extract_from_url_fallback(value):
-    m = re.search(r"(https?://[^\s\"']+)", value)
-    if not m:
-        log("Fallback URL fallito", "DROP")
-        return None
-    return extract_from_url(m.group(1))
-
-
-# =====================================================
-# UNIVERSAL STREAM DECODER
-# =====================================================
-
-def decode_stream(value):
-    if not value:
-        log("Resolve vuoto", "DROP")
-        return None
-
-    value = value.strip()
-    log(f"Decodifica → {value}", "DECODE")
-
-    if value.lower().startswith("dazntoken@@"):
-        log("Tipo DAZN", "TYPE")
-        try:
-            b64 = value.split("@@")[1]
-            missing = len(b64) % 4
-            if missing:
-                b64 += "=" * (4 - missing)
-            decoded = base64.b64decode(b64).decode("utf-8", "ignore")
-        except:
-            log("DAZN decode fallito", "DROP")
-            return None
-
-        parts = decoded.split("|")
-
-        if len(parts) >= 2:
-            url = parts[0]
-            token = parts[-1]
-            key_id, key = ("", "")
-            if len(parts) == 3 and ":" in parts[1]:
-                key_id, key = parts[1].split(":", 1)
-
-            log(f"DAZN OK → {url}", "OK")
-            return {
-                "type": "dazn",
-                "url": url,
-                "key_id": key_id,
-                "key": key,
-                "token": token
-            }
-
-    if value.lower().startswith("freeshot@@"):
-        log("Freeshot ignorato", "DROP")
-        return None
-
-    if value.startswith("http"):
-        return extract_from_url(value)
-
-    if ".mpd" in value or ".m3u8" in value:
-        if value.startswith('amstaff@@'):
-            value = value.replace('amstaff@@', '').replace('|0000', '')
-        elif value.startswith('ffmpeg@@'):
-            value = value.replace('ffmpeg@@', '')
-        return extract_from_url(value if value.startswith("http") else "https://" + value)
-
-    if value.startswith("{") and value.endswith("}"):
-        try:
-            obj = json.loads(value)
-            log("JSON inline OK", "OK")
-            return {
-                "type": "json",
-                "url": obj.get("url"),
-                "key_id": obj.get("key_id", ""),
-                "key": obj.get("key", "")
-            }
-        except:
-            log("JSON non valido", "DROP")
-
-    amstaff = decode_amstaff_raw(value)
-    if amstaff:
-        return amstaff
-
-    log("Nessun decoder valido", "DROP")
-    return None
-
-
-# =====================================================
-# KODI PROPERTY BUILDER
-# =====================================================
-
-def build_kodi_props(stream):
-    props = []
-
-    if ".mpd" in stream["url"]:
-        props.append("#KODIPROP:inputstream.adaptive.manifest_type=mpd")
-
-    if stream.get("type") == "dazn":
-        if stream["key_id"] and stream["key"]:
-            props.append("#KODIPROP:inputstream.adaptive.license_type=clearkey")
-            props.append(
-                f"#KODIPROP:inputstream.adaptive.license_key={stream['key_id']}:{stream['key']}"
-            )
-
-        header = (
-            f"dazn-token={stream['token']}"
-            "&user-agent=Mozilla/5.0"
-            "&referer=https://www.dazn.com/"
-            "&origin=https://www.dazn.com"
-        )
-
-        props.append(f"#KODIPROP:inputstream.adaptive.stream_headers={header}")
-        return props
-
-    if stream["key_id"] and stream["key"]:
-        props.append("#KODIPROP:inputstream.adaptive.license_type=clearkey")
-        props.append(
-            f"#KODIPROP:inputstream.adaptive.license_key={stream['key_id']}:{stream['key']}"
-        )
-
-    return props
-
-
-# =====================================================
-# JSON PARSER
-# =====================================================
-
-def extract_channels(obj, out):
-    if isinstance(obj, dict):
-        if "title" in obj and "myresolve" in obj:
-            title = clean_title(obj["title"])
-            resolve = obj["myresolve"]
-
-            log(f"Canale trovato → {title}", "FOUND")
-            log(f"Resolve → {resolve}", "RAW")
-
-            out.append({"title": title, "resolve": resolve})
-
-        for v in obj.values():
-            extract_channels(v, out)
-
-    elif isinstance(obj, list):
-        for i in obj:
-            extract_channels(i, out)
-
-    return out
-
-
-def find_category_link(data, name):
-    name = name.upper()
-    found = None
-
-    def search(x):
-        nonlocal found
-        if found:
-            return
-        if isinstance(x, dict):
-            if name in x.get("title", "").upper() and "externallink" in x:
-                found = x["externallink"]
-                log(f"Categoria '{name}' → {found}", "OK")
-                return
-            for v in x.values():
-                search(v)
-        elif isinstance(x, list):
-            for i in x:
-                search(i)
-
-    log(f"Cerco categoria {name}", "SEARCH")
-    search(data)
-    if not found:
-        log(f"Categoria {name} NON trovata", "DROP")
-    return found
-
-
-# =====================================================
-# FETCH
-# =====================================================
-
-def fetch_amstaff_channels():
-    headers = {"User-Agent": USER_AGENT}
-
-    home = requests.get(HOME_URL, headers=headers, timeout=15).json()
-
-    sport = find_category_link(home, "SPORT")
-    if not sport:
-        return []
-
-    sport_json = requests.get(sport, headers=headers, timeout=15).json()
-    last = find_category_link(sport_json, "LAST MINUTE")
-    if not last:
-        return []
-
-    last_json = requests.get(last, headers=headers, timeout=15).json()
-
-    raw = extract_channels(last_json, [])
-    log(f"Canali grezzi trovati: {len(raw)}", "STATS")
-
-    final = []
-
-    for ch in raw:
-        decoded = decode_stream(ch["resolve"])
-        if not decoded:
-            log(f"SCARTATO → {ch['title']}", "DROP")
-            continue
-
-        decoded["title"] = ch["title"]
-        final.append(decoded)
-        log(f"ACCETTATO → {ch['title']} ({decoded['type']})", "OK")
-
-    log(f"Canali validi finali: {len(final)}", "STATS")
-    return final
-
-
-# =====================================================
-# M3U
-# =====================================================
-
-def generate_m3u(channels):
-    m3u = "#EXTM3U\n\n"
-
-    for ch in channels:
-        props = build_kodi_props(ch)
-        tvg_id = re.sub(r"[^A-Za-z0-9]", "", ch["title"]).lower()
-
-        m3u += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{DEFAULT_LOGO}" group-title="ULTIMO MINUTO",{ch["title"]}\n'
-        for p in props:
-            m3u += p + "\n"
-        m3u += ch["url"] + "\n\n"
-
-    with open(OUTPUT_M3U, "w", encoding="utf-8") as f:
-        f.write(m3u)
-
-    log(f"Playlist generata → {OUTPUT_M3U}", "DONE")
-
-
-# =====================================================
-# MAIN
-# =====================================================
-
-if __name__ == "__main__":
-    channels = fetch_amstaff_channels()
-    if channels:
-        generate_m3u(channels)
-    else:
-        log("Nessun canale trovato", "FAIL")
+HEADERS = {"User-Agent": USER_AGENT}
+
+
+def hex_to_oct_keys(hex_string):
+    def _hex_to_base64url(hex_str: str):
+        decoded_bytes = bytes.fromhex(hex_str)  # Convert hex string to bytes
+        base64url_str = base64.urlsafe_b64encode(decoded_bytes).decode('utf-8')  # Encode bytes to Base64URL
+        base64url_str = base64url_str.rstrip('=')  # Remove any padding ('=') characters
+        return base64url_str
+
+    def _extract_kid_k(kid_key_pair: str):
+        kid_key_pair = kid_key_pair.replace('{', '').replace('}', '').replace(',', '').replace('"', '').replace("'", "").replace('-', '')
+        kid = _hex_to_base64url(kid_key_pair.split(':')[0])
+        key = _hex_to_base64url(kid_key_pair.split(':')[1])
+        return kid, key
+
+    for delim in (',', ' '):
+        if delim in hex_string:
+            pairs_list = [item for item in hex_string.split(delim) if item.strip()]  # if item.strip() removes empty arguments
+            break
+    result = ""
+    for item in pairs_list:
+        result += '{"kty":"oct","kid":"%s","k":"%s"}' % (*_extract_kid_k(item),)
+    oct_keys = '{"keys":[%s]}' % result.replace('}{', '},{')
+    return oct_keys
+
+
+def get_channels_dict():
+    home_dict = requests.get(HOME_URL, headers=HEADERS).json()
+    sport_url = next((i for i in home_dict["items"] if i["info"].lower() == 'sport'))["externallink"]
+    sport_dict = requests.get(sport_url, headers=HEADERS).json()
+    last_minute_url = next((i for i in sport_dict["items"] if i["info"].lower() == 'last minute'))["externallink"]
+    last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
+    return last_minute_dict
+
+
+def clean_item(item):
+    headers = None
+    manifest_reference = item["myresolve"].rsplit("@@")[1].rsplit("|")[0]
+    try:
+        resolve = base64.b64decode(manifest_reference).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError):
+        resolve = manifest_reference
+
+    manifest_url = resolve.rsplit("|")[0].strip()
+
+    if "|" in item["myresolve"]:
+        kid_key_pair = item["myresolve"].rsplit("|")[1].strip()
+    elif "|" in resolve:
+        kid_key_pair = resolve.rsplit("|")[1].strip()
+    if '=' in kid_key_pair:
+        headers = kid_key_pair
+        kid_key_pair = ""
+    if ',' in kid_key_pair:
+        kid_key_pair = hex_to_oct_keys(kid_key_pair)
+    if len(kid_key_pair) < 64:
+        kid_key_pair = ""
+
+    item["title"] = re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
+    item["manifest_url"] = manifest_url
+    item["kid_key_pair"] = kid_key_pair
+    if headers:
+        item["headers"] = headers
+    del item["myresolve"]
+    del item["thumbnail"]
+    del item["fanart"]
+    del item["info"]
+    return item
+
+
+def filter_items(my_dict):
+    filtered_items = []
+    for item in my_dict["items"]:
+        if "myresolve" in item:
+            if "amstaff@@" in item["myresolve"] or any(x in item["myresolve"] for x in [".m3u8", ".mpd", ".livx"]):
+                filtered_items.append(clean_item(item))
+    return filtered_items
+
+
+def create_m3u_entry(item):
+    entry = f'#EXTINF:-1 group-title="ULTIMO MINUTO",{item["title"]}'
+    if item.get("headers"):
+        entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers']}"
+    if item["kid_key_pair"]:
+        entry += f"\n#KODIPROP:inputstream.adaptive.license_type=clearkey\n#KODIPROP:inputstream.adaptive.license_key={item['kid_key_pair']}"
+    entry += f"\n{item['manifest_url']}"
+    if item.get("headers"):
+        entry += f"?|{item['headers']}"
+    return entry
+
+
+def create_m3u8_playlist(entries):
+    playlist = "#EXTM3U\n\n"
+    for entry in entries:
+        playlist += create_m3u_entry(entry) + "\n\n"
+    return playlist
+
+
+filtered_items = filter_items(get_channels_dict())
+with open(OUTFILE, 'w', encoding='utf-8') as f:
+    f.write(create_m3u8_playlist(filtered_items))
+print(f"✅ Playlist {OUTFILE} created with {len(filtered_items)} entries.")

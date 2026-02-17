@@ -9,7 +9,7 @@ import requests
 
 DEBUG = False
 
-OUTPUT_M3U = "sky.m3u8"
+OUTFILE = "sky.m3u8"
 TVG_URL = "https://github.com/whitesnakeftw/epg/releases/download/1.0.0/super.guide.xml.gz"
 AMSTAFF_URL = "https://test34344.herokuapp.com/filter.php"
 
@@ -239,10 +239,10 @@ def generate_m3u(channels):
     for title, encoded, thumbnail in remaining:
         _process_item(title, encoded, thumbnail)
 
-    with open(OUTPUT_M3U, "w", encoding="utf-8") as f:
+    with open(OUTFILE, "w", encoding="utf-8") as f:
         f.write(m3u)
 
-    print(f"✅ File M3U creato: {OUTPUT_M3U}")
+    print(f"✅ Playlist {OUTFILE} created.")
 
 # ==============================
 # MAIN

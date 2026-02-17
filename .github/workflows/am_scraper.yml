@@ -2,16 +2,16 @@ name: am scraper
 
 on:
   workflow_dispatch:
-  schedule:
-    # All days (UTC times)
-    - cron: '50 16 * * *'
-    - cron: '40 19 * * *'
-    # Weekdays (UTC times)
-    - cron: '00 10 * * 1-5'
-    # Weekends: Sat & Sun (UTC times)
-    - cron: '20 11 * * 6,0'
-    - cron: '50 13 * * 6,0'
-    - cron: '55 18 * * 6,0'
+  # schedule:
+  #   # All days (UTC times)
+  #   - cron: '50 16 * * *'
+  #   - cron: '40 19 * * *'
+  #   # Weekdays (UTC times)
+  #   - cron: '00 10 * * 1-5'
+  #   # Weekends: Sat & Sun (UTC times)
+  #   - cron: '20 11 * * 6,0'
+  #   - cron: '50 13 * * 6,0'
+  #   - cron: '55 18 * * 6,0'
 
 env:
   RELEASE_TAG: '1.0.0'

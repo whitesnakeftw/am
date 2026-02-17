@@ -2,8 +2,8 @@ name: tw scraper
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '58 19 * * *'
+  # schedule:
+  #   - cron: '58 19 * * *'
 
 env:
   RELEASE_TAG: 'tw'
