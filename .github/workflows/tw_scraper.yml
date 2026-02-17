@@ -42,7 +42,7 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Delete release andtag
+      - name: Delete release and tag
         if: steps.tag_check.outputs.exists == 'true'
         run: gh release delete "$RELEASE_TAG" --cleanup-tag --yes
         env:
@@ -58,5 +58,5 @@ jobs:
           removeArtifacts: true
           prerelease: false
           draft: false
-          makeLatest: true
+          makeLatest: false
           tag: ${{ env.RELEASE_TAG }}
