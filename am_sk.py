@@ -210,9 +210,10 @@ def generate_m3u(channels):
         logo = meta["logo"] if meta else thumbnail
         group = meta["group"] if meta else "Altro"
         tvg_id = name.replace(" ", '') + '.it'
+        quality = "FHD" if ("CMAF_CTR_H" in url or "dazn" in url) else "SD"
 
         nonlocal m3u
-        m3u += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{group}",{name}\n'
+        m3u += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{group} {quality}",{name} ({quality})\n'
         m3u += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
         m3u += f'#KODIPROP:inputstream.adaptive.license_key={key_id}:{key}\n'
         m3u += f'{url}\n\n'
@@ -224,12 +225,24 @@ def generate_m3u(channels):
     # find the first remaining fetched channel that matches it and output it
     for db_key, db_meta in CHANNELS_DB.items():
         found_index = None
+        # First try to find a matching FHD entry for this db_meta
         for idx, (title, encoded, thumbnail) in enumerate(remaining):
             matched = match_channel(title)
-            # match_channel returns the same dict object from CHANNELS_DB when matched
-            if matched is db_meta:
+            if matched is not db_meta:
+                continue
+            dec = decode_amstaff(encoded)
+            url = dec[0] if dec else ""
+            if "CMAF_CTR_H" in url or "dazn" in url:
                 found_index = idx
                 break
+
+        # If no FHD match found, fall back to the first matching entry (SD or unknown)
+        if found_index is None:
+            for idx, (title, encoded, thumbnail) in enumerate(remaining):
+                matched = match_channel(title)
+                if matched is db_meta:
+                    found_index = idx
+                    break
 
         if found_index is not None:
             title, encoded, thumbnail = remaining.pop(found_index)
