@@ -12,14 +12,14 @@ USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
 HEADERS = {"User-Agent": USER_AGENT}
 
 
-def hex_to_oct_keys(hex_string):
-    def _hex_to_base64url(hex_str: str):
+def hex_to_oct_keys(hex_string: str) -> str:
+    def _hex_to_base64url(hex_str: str) -> str:
         decoded_bytes = bytes.fromhex(hex_str)  # Convert hex string to bytes
         base64url_str = base64.urlsafe_b64encode(decoded_bytes).decode('utf-8')  # Encode bytes to Base64URL
         base64url_str = base64url_str.rstrip('=')  # Remove any padding ('=') characters
         return base64url_str
 
-    def _extract_kid_k(kid_key_pair: str):
+    def _extract_kid_k(kid_key_pair: str) -> tuple[str, str]:
         kid_key_pair = kid_key_pair.replace('{', '').replace('}', '').replace(',', '').replace('"', '').replace("'", "").replace('-', '')
         kid = _hex_to_base64url(kid_key_pair.split(':')[0])
         key = _hex_to_base64url(kid_key_pair.split(':')[1])
@@ -36,7 +36,7 @@ def hex_to_oct_keys(hex_string):
     return oct_keys
 
 
-def get_channels_dict():
+def get_channels_dict() -> dict:
     home_dict = requests.get(HOME_URL, headers=HEADERS).json()
     sport_url = next((i for i in home_dict["items"] if i["info"].lower() == 'sport'))["externallink"]
     sport_dict = requests.get(sport_url, headers=HEADERS).json()
@@ -45,7 +45,7 @@ def get_channels_dict():
     return last_minute_dict
 
 
-def clean_item(item):
+def clean_item(item: dict) -> dict:
     headers = None
     manifest_reference = item["myresolve"].rsplit("@@")[1].rsplit("|")[0]
     try:
@@ -79,16 +79,24 @@ def clean_item(item):
     return item
 
 
-def filter_items(my_dict):
+def has_time_in_title(title: str) -> bool:
+    return bool(re.match(r'^\s*\d{1,2}:\d{2}', title))
+
+
+def filter_items(channels_dict: dict) -> list[dict]:
     filtered_items = []
-    for item in my_dict["items"]:
+    for item in channels_dict["items"]:
         if "myresolve" in item:
             if "amstaff@@" in item["myresolve"] or any(x in item["myresolve"] for x in [".m3u8", ".mpd", ".livx"]):
                 filtered_items.append(clean_item(item))
-    return filtered_items
+    # Move actual events first
+    events = [i for i in filtered_items if has_time_in_title(i.get("title", ""))]
+    linear_channels = [i for i in filtered_items if not has_time_in_title(i.get("title", ""))]
+    ordered_items = events + linear_channels
+    return ordered_items
 
 
-def create_m3u_entry(item):
+def create_m3u_entry(item: dict) -> str:
     entry = f'#EXTINF:-1 group-title="ULTIMO MINUTO",{item["title"]}'
     if item.get("headers"):
         entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers']}"
@@ -100,7 +108,7 @@ def create_m3u_entry(item):
     return entry
 
 
-def create_m3u8_playlist(entries):
+def create_m3u8_playlist(entries: list[dict]) -> str:
     playlist = "#EXTM3U\n\n"
     for entry in entries:
         playlist += create_m3u_entry(entry) + "\n\n"
