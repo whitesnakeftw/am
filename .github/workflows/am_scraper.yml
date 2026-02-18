@@ -62,11 +62,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Wait for deletion to propagate
+        if: steps.tag_check.outputs.exists == 'true'
+        run: sleep 6
+        shell: bash
+
+      - name: Verify tag and release deletion
+        if: steps.tag_check.outputs.exists == 'true'
+        run: |
+          if git ls-remote --tags origin refs/tags/$RELEASE_TAG | grep -q "refs/tags/$RELEASE_TAG"; then
+            echo "Tag still exists!"; exit 1;
+          fi
+          gh release view "$RELEASE_TAG" && { echo "Release still exists!"; exit 1; } || echo "Release deleted."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish release
         uses: ncipollo/release-action@v1
         with:
           artifacts: "*.m3u8"
-          allowUpdates: true
+          allowUpdates: false # if true, could draft the release
           generateReleaseNotes: false
           replacesArtifacts: true
           removeArtifacts: true
