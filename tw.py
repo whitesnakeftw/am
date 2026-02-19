@@ -14,6 +14,8 @@ twitch_profiles = [
     "https://www.twitch.tv/gioee",
     "https://www.twitch.tv/kingsleague_it",
     "https://www.twitch.tv/kingsleague",
+    "https://www.twitch.tv/ilrossopiubelloditwitch",
+    "https://www.twitch.tv/none_cerbero_podcast",
 ]
 
 
