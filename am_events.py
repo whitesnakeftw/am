@@ -2,6 +2,7 @@ import base64
 import binascii
 import re
 import requests
+from sportzx import SportzxClient
 
 OUTFILE = "last_minute.m3u8"
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
@@ -91,8 +92,9 @@ def filter_items(channels_dict: dict) -> list[dict]:
                 filtered_items.append(clean_item(item))
     # Move actual events first
     events = [i for i in filtered_items if has_time_in_title(i.get("title", ""))]
-    linear_channels = [i for i in filtered_items if not has_time_in_title(i.get("title", ""))]
-    ordered_items = events + linear_channels
+    # linear_channels = [i for i in filtered_items if not has_time_in_title(i.get("title", ""))]
+    # ordered_items = events + linear_channels
+    ordered_items = events
     return ordered_items
 
 
@@ -115,7 +117,21 @@ def create_m3u8_playlist(entries: list[dict]) -> str:
     return playlist
 
 
+def getSportzxChannels() -> tuple[str, int]:
+    client = SportzxClient(excluded_categories=["adult", "test", "xxx", "cricket", "icc "])
+    channels = client.get_channels()
+    if channels:
+        sportzx_channels, n_channels = client.generate_m3u(channels=channels, filename="", generic_logo="")
+    else:
+        print("No channels found from SPORTZX")
+    return sportzx_channels, n_channels
+
+
 filtered_items = filter_items(get_channels_dict())
+am_channels = create_m3u8_playlist(filtered_items)
+
+sportzx_channels, n_channels = getSportzxChannels()
+
 with open(OUTFILE, 'w', encoding='utf-8') as f:
-    f.write(create_m3u8_playlist(filtered_items))
-print(f"✅ Playlist {OUTFILE} created with {len(filtered_items)} entries.")
+    f.write(am_channels + sportzx_channels)
+print(f"✅ Playlist {OUTFILE} created with {len(filtered_items)}+{n_channels} entries.")

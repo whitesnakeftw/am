@@ -182,7 +182,7 @@ class SportzxClient:
 
         valid_events = [
             e for e in events
-            if isinstance(e, dict) and e.get("cat") and e["cat"].lower() not in self.excluded_categories
+            if isinstance(e, dict) and e.get("cat") and not any(excl in e["cat"].lower() for excl in self.excluded_categories)
         ]
 
         for event in valid_events:
@@ -253,7 +253,8 @@ class SportzxClient:
                      channels: List[SportzxChannel],
                      filename: str = "Sportzx.m3u8",
                      generic_logo: str = "https://via.placeholder.com/512/000000/FFFFFF?text=Sport") -> str:
-        lines = ["#EXTM3U", "#EXT-X-VERSION:3", ""]
+        # lines = ["#EXTM3U", "#EXT-X-VERSION:3", ""]
+        lines = []
 
         included = 0
 
@@ -288,15 +289,17 @@ class SportzxClient:
             # Pulizia
             nome_pulito = re.sub(r'[^\w\s\-\:\(\)\,\.\']', ' ', nome_finale).strip()
 
-            gruppo = ch.event_cat.capitalize() if ch.event_cat else "Sportzx"
+            gruppo = ch.event_cat if ch.event_cat else "Sportzx"
 
-            tvg = re.sub(r'[^a-z0-9]', '', nome_pulito.lower())
-            tvg_id = tvg[:50] if tvg else f"sportzx-{ch.event_id[:8]}"
+            # tvg = re.sub(r'[^a-z0-9]', '', nome_pulito.lower())
+            # tvg_id = tvg[:50] if tvg else f"sportzx-{ch.event_id[:8]}"
 
             extinf = (
-                f'#EXTINF:-1 tvg-id="{tvg_id}" '
-                f'tvg-logo="{generic_logo}" '
-                f'group-title="{gruppo}",{nome_pulito}'
+                # f'#EXTINF:-1 tvg-id="{tvg_id}" '
+                f'#EXTINF:-1 '
+                # f'tvg-id="" tvg-logo="{generic_logo}" '
+                # f'group-title="{gruppo}",{nome_pulito}'
+                f'group-title="EVENTI SPORTZX" type="{gruppo}",{nome_pulito}'
             )
 
             lines.append(extinf)
@@ -310,15 +313,15 @@ class SportzxClient:
 
         contenuto = "\n".join(lines).rstrip()
 
-        try:
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(contenuto + "\n")
-            print(f"Playlist creata: {filename}")
-            print(f"Canali inseriti: {included}")
-        except Exception as e:
-            print(f"Errore salvataggio: {e}")
+        # try:
+        #     with open(filename, "w", encoding="utf-8") as f:
+        #         f.write(contenuto + "\n")
+        #     print(f"Playlist creata: {filename}")
+        #     print(f"Canali inseriti: {included}")
+        # except Exception as e:
+        #     print(f"Errore salvataggio: {e}")
 
-        return contenuto
+        return contenuto, included
 
 
 # ────────────────────────────────────────────────
