@@ -43,6 +43,7 @@ def get_channels_dict() -> dict:
     sport_dict = requests.get(sport_url, headers=HEADERS).json()
     last_minute_url = next((i for i in sport_dict["items"] if i["info"].lower() == 'last minute'))["externallink"]
     last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
+    print(last_minute_dict)
     return last_minute_dict
 
 
@@ -65,7 +66,7 @@ def clean_item(item: dict) -> dict:
         kid_key_pair = ""
     if ',' in kid_key_pair:
         kid_key_pair = hex_to_oct_keys(kid_key_pair)
-    if len(kid_key_pair) < 64:
+    if len(kid_key_pair) < 64 or re.search(r'^0+:0+$', kid_key_pair):
         kid_key_pair = ""
 
     item["title"] = re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()

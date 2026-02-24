@@ -213,7 +213,10 @@ class SportzxClient:
                 keyid = key = None
                 api_val = ch.get("api")
                 if api_val and ":" in api_val:
-                    keyid, key = api_val.split(":", 1)
+                    if len(api_val) < 64 or re.search(r'^0+:0+$', api_val):
+                        pass
+                    else:
+                        keyid, key = api_val.split(":", 1)
 
                 channels_list.append(SportzxChannel(
                     event_title=event.get("title", "Evento senza titolo"),
