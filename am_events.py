@@ -2,6 +2,7 @@ import base64
 import binascii
 import re
 import requests
+import x
 from sportzx import SportzxClient
 
 OUTFILE = "last_minute.m3u8"
@@ -103,7 +104,7 @@ def create_m3u_entry(item: dict) -> str:
     entry = f'#EXTINF:-1 group-title="ULTIMO MINUTO",{item["title"]}'
     if item.get("headers"):
         entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers']}"
-    if item["kid_key_pair"]:
+    if item.get("kid_key_pair"):
         entry += f"\n#KODIPROP:inputstream.adaptive.license_type=clearkey\n#KODIPROP:inputstream.adaptive.license_key={item['kid_key_pair']}"
     entry += f"\n{item['manifest_url']}"
     if item.get("headers"):
@@ -112,7 +113,7 @@ def create_m3u_entry(item: dict) -> str:
 
 
 def create_m3u8_playlist(entries: list[dict]) -> str:
-    playlist = "#EXTM3U\n\n"
+    playlist = ''
     for entry in entries:
         playlist += create_m3u_entry(entry) + "\n\n"
     return playlist
@@ -128,11 +129,14 @@ def getSportzxChannels() -> tuple[str, int]:
     return sportzx_channels, n_channels
 
 
-filtered_items = filter_items(get_channels_dict())
-am_channels = create_m3u8_playlist(filtered_items)
+am_channels_dict = filter_items(get_channels_dict())
+am_channels = create_m3u8_playlist(am_channels_dict)
 
-sportzx_channels, n_channels = getSportzxChannels()
+x_channels_dict, n_x = x.getXchannels()
+x_channels = create_m3u8_playlist(x_channels_dict)
+
+sportzx_channels, n_sportzx = getSportzxChannels()
 
 with open(OUTFILE, 'w', encoding='utf-8') as f:
-    f.write(am_channels + sportzx_channels)
-print(f"✅ Playlist {OUTFILE} created with {len(filtered_items)}+{n_channels} entries.")
+    f.write("#EXTM3U\n\n" + am_channels + x_channels + sportzx_channels)
+print(f"✅ Playlist {OUTFILE} created with {len(am_channels_dict)}+{n_x}+{n_sportzx} entries.")
