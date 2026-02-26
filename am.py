@@ -18,7 +18,6 @@ def get_channels_dict() -> dict:
     sport_dict = requests.get(sport_url, headers=HEADERS).json()
     last_minute_url = next((i for i in sport_dict["items"] if i["info"].lower() == 'last minute'))["externallink"]
     last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
-    print(last_minute_dict)
     return last_minute_dict
 
 
@@ -44,7 +43,7 @@ def clean_item(item: dict) -> dict:
     if len(kid_key_pair) < 64 or re.search(r'^0+:0+$', kid_key_pair):
         kid_key_pair = ""
 
-    item["title"] = re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
+    item["title"] = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
     item["manifest_url"] = manifest_url
     item["kid_key_pair"] = kid_key_pair
     if headers:
@@ -57,7 +56,7 @@ def clean_item(item: dict) -> dict:
 
 
 def has_time_in_title(title: str) -> bool:
-    return bool(re.match(r'^\s*\d{1,2}:\d{2}', title))
+    return bool(re.match(r'.*\b\d{1,2}:\d{2}\b', title))
 
 
 def filter_items(channels_dict: dict) -> list[dict]:
@@ -77,3 +76,5 @@ def filter_items(channels_dict: dict) -> list[dict]:
 if __name__ == "__main__":
     channels_dict = get_channels_dict()
     filtered_items = filter_items(channels_dict)
+    print(filtered_items)
+    print(f"✅ Found {len(filtered_items)} channels from AM.")

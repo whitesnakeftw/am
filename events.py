@@ -1,14 +1,17 @@
 import am
 import x
+import tn
 from sportzx import SportzxClient
 
 OUTFILE = "last_minute.m3u8"
 
 
 def create_m3u_entry(item: dict) -> str:
+    if isinstance(item.get("headers"), dict):
+        item["headers"] = '|'.join(f'{k}={v}' for k, v in item["headers"].items())
     entry = f'#EXTINF:-1 group-title="ULTIMO MINUTO",{item["title"]}'
     if item.get("headers"):
-        entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers']}"
+        entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers'].replace('|', '&')}"
     if item.get("kid_key_pair"):
         entry += f"\n#KODIPROP:inputstream.adaptive.license_type=clearkey\n#KODIPROP:inputstream.adaptive.license_key={item['kid_key_pair']}"
     entry += f"\n{item['manifest_url']}"
@@ -37,6 +40,12 @@ def getXChannels() -> tuple[str, int]:
     return channels, n
 
 
+def getTnChannels() -> tuple[str, int]:
+    events_dict, n = tn.getEventsDict()
+    channels = create_m3u8_playlist(events_dict)
+    return channels, n
+
+
 def getSportzxChannels() -> tuple[str, int]:
     client = SportzxClient(excluded_categories=["adult", "test", "xxx", "cricket", "icc "])
     channels = client.get_channels()
@@ -49,8 +58,9 @@ def getSportzxChannels() -> tuple[str, int]:
 
 am_channels, n_am = getAmChannels()
 x_channels, n_x = getXChannels()
+tn_channels, n_tn = getTnChannels()
 sportzx_channels, n_sportzx = getSportzxChannels()
 
 with open(OUTFILE, 'w', encoding='utf-8') as f:
-    f.write("#EXTM3U\n\n" + am_channels + x_channels + sportzx_channels)
-print(f"✅ Playlist {OUTFILE} created with {n_am}(am)+{n_x}(x)+{n_sportzx}(sportzx) entries.")
+    f.write("#EXTM3U\n\n" + am_channels + x_channels + tn_channels + sportzx_channels)
+print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_x}(x) + {n_tn}(tn) + {n_sportzx}(sportzx) entries.")

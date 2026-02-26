@@ -20,14 +20,14 @@ def extract_keys_from_url(url: str) -> tuple[str, str]:
     return url, kid_key_pair
 
 
-def getXchannelsDict() -> tuple[str, int]:
+def getXchannelsDict() -> tuple[list[dict], int]:
     events_dict = requests.get(SOURCE, headers={"User-Agent": USER_AGENT}).json()
     filtered_channels = []
     for item in events_dict["metas"]:
         if re.search(r'\b\d{2}H\d{2}\b', item["name"]) or 'dazn 1' in item["name"].lower():
             url, kid_key_pair = extract_keys_from_url(item["dynamicDUrls"][0]["url"])
             filtered_channels.append({
-                "title": clean_title(item["name"]),
+                "title": '[X] ' + clean_title(item["name"]),
                 "manifest_url": url
             })
             if kid_key_pair:
@@ -36,4 +36,6 @@ def getXchannelsDict() -> tuple[str, int]:
 
 
 if __name__ == "__main__":
-    x_channels = getXchannelsDict()
+    channels_dict = getXchannelsDict()
+    print(channels_dict)
+    print(f"✅ Found {len(channels_dict[0])} channels from X-Eventi.")
