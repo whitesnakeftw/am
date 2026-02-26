@@ -1,4 +1,4 @@
-name: am scraper
+name: Events scraper
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-          python am_events.py
+          python events.py
       
       - name: Run sk scraper
         env:

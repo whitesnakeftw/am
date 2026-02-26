@@ -20,7 +20,7 @@ def extract_keys_from_url(url: str) -> tuple[str, str]:
     return url, kid_key_pair
 
 
-def getXchannels() -> tuple[str, int]:
+def getXchannelsDict() -> tuple[str, int]:
     events_dict = requests.get(SOURCE, headers={"User-Agent": USER_AGENT}).json()
     filtered_channels = []
     for item in events_dict["metas"]:
@@ -36,4 +36,4 @@ def getXchannels() -> tuple[str, int]:
 
 
 if __name__ == "__main__":
-    x_channels = getXchannels()
+    x_channels = getXchannelsDict()
