@@ -2,6 +2,7 @@ import requests
 import re
 import json
 import base64
+import html
 from datetime import datetime
 from urllib.parse import unquote
 from utils import hex_to_oct_keys
@@ -40,7 +41,8 @@ def parseEventUrl(url: str, session: requests.Session) -> tuple[str, str, dict]:
     keys = None
     headers_dict = None
     try:
-        response = session.get(url, headers={'User-Agent': headers["user-agent"]}).text.replace('&amp;', '&')
+        response = session.get(url, headers={'User-Agent': headers["user-agent"]}).text
+        response = html.unescape(response)
         matches = re.search(r'pages/player\.html#(http(?:(?![?&](?:ck|headers)=)[^"])+)(?:[?&]ck=([^"&]+))?(?:[?&]headers=([^"&]+))?', response)
         if matches:
             mpd_url = matches[1]
@@ -79,7 +81,7 @@ def getTnEventsDict() -> list[dict]:
                 url, kid_key_pair, headers_dict = parseEventUrl(item["link"], sesh)
                 if url is not None:
                     parsed_items.append({
-                        "title": f'[TN] {item["orario"]} {item["evento"]} ({item["competizione"]}) [{item["canale"]}]',
+                        "title": f'[TN] {item["orario"]} {item["evento"]} ({item["competizione"]}) [{html.unescape(item["canale"])}]',
                         "manifest_url": url
                     })
                     if kid_key_pair:

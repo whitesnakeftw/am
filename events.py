@@ -9,6 +9,7 @@ OUTFILE = "last_minute.m3u8"
 def create_m3u_entry(item: dict) -> str:
     if isinstance(item.get("headers"), dict):
         item["headers"] = '|'.join(f'{k}={v}' for k, v in item["headers"].items())
+    item["title"] = item["title"].replace(':', '\N{MODIFIER LETTER COLON}')
     entry = f'#EXTINF:-1 group-title="ULTIMO MINUTO",{item["title"]}'
     if item.get("headers"):
         entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers'].replace('|', '&')}"
