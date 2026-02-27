@@ -17,7 +17,7 @@ headers = {
 }
 
 
-def login_to_site(url, password):
+def siteLogin(url, password):
     try:
         session = requests.Session()
         response = session.post(url, data={'password': password}, headers={'User-Agent': headers["user-agent"]})
@@ -67,9 +67,9 @@ def getCurrentDayIT():
     return days[datetime.now().weekday()]
 
 
-def getEventsDict() -> list[dict]:
+def getTnEventsDict() -> list[dict]:
     parsed_items = []
-    sesh = login_to_site('https://thisnot.business', '2025')
+    sesh = siteLogin('https://thisnot.business', '2025')
     try:
         response = sesh.get('https://thisnot.business/api/eventi.json', headers=headers)
         events_dict = response.json()
@@ -92,6 +92,6 @@ def getEventsDict() -> list[dict]:
 
 
 if __name__ == "__main__":
-    events_dict = getEventsDict()
+    events_dict = getTnEventsDict()
     print(events_dict)
     print(f"✅ Found {len(events_dict[0])} channels from TN.")

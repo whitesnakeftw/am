@@ -12,7 +12,7 @@ USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
 HEADERS = {"User-Agent": USER_AGENT}
 
 
-def get_channels_dict() -> dict:
+def getAmChannelsDict() -> dict:
     try:
         home_dict = requests.get(HOME_URL, headers=HEADERS).json()
         sport_url = next((i for i in home_dict["items"] if i["info"].lower() == 'sport'))["externallink"]
@@ -78,7 +78,7 @@ def filter_items(channels_dict: dict) -> list[dict]:
 
 
 if __name__ == "__main__":
-    channels_dict = get_channels_dict()
+    channels_dict = getAmChannelsDict()
     filtered_items = filter_items(channels_dict)
     print(filtered_items)
     print(f"✅ Found {len(filtered_items)} channels from AM.")

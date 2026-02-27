@@ -28,32 +28,33 @@ def create_m3u8_playlist(entries: list[dict]) -> str:
 
 
 def getAmChannels() -> tuple[str, int]:
-    channels_dict = am.get_channels_dict()
+    channels_dict = am.getAmChannelsDict()
     filtered_items = am.filter_items(channels_dict)
-    am_channels = create_m3u8_playlist(filtered_items)
-    return am_channels, len(filtered_items)
+    channels = create_m3u8_playlist(filtered_items)
+    n = len(filtered_items)
+    return channels, n
 
 
 def getXChannels() -> tuple[str, int]:
-    channels_dict, n = x.getXchannelsDict()
+    channels_dict, n = x.getXEventsDict()
     channels = create_m3u8_playlist(channels_dict)
     return channels, n
 
 
 def getTnChannels() -> tuple[str, int]:
-    events_dict, n = tn.getEventsDict()
+    events_dict, n = tn.getTnEventsDict()
     channels = create_m3u8_playlist(events_dict)
     return channels, n
 
 
 def getSportzxChannels() -> tuple[str, int]:
     client = SportzxClient(excluded_categories=["adult", "test", "xxx", "cricket", "icc "])
-    channels = client.get_channels()
-    if channels:
-        sportzx_channels, n_channels = client.generate_m3u(channels=channels, filename="", generic_logo="")
+    channels_dict = client.get_channels()
+    if channels_dict:
+        channels, n = client.generate_m3u(channels=channels_dict, filename="", generic_logo="")
     else:
         print("No channels found from SPORTZX")
-    return sportzx_channels, n_channels
+    return channels, n
 
 
 am_channels, n_am = getAmChannels()
