@@ -65,4 +65,4 @@ sportzx_channels, n_sportzx = getSportzxChannels()
 
 with open(OUTFILE, 'w', encoding='utf-8') as f:
     f.write("#EXTM3U\n\n" + am_channels + x_channels + tn_channels + sportzx_channels)
-print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_x}(x) + {n_tn}(tn) + {n_sportzx}(sportzx) entries.")
+print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_x}(xe) + {n_tn}(tn) + {n_sportzx}(sportzx) entries.")

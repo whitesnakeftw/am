@@ -25,10 +25,10 @@ def getXEventsDict() -> tuple[list[dict], int]:
     try:
         events_dict = requests.get(SOURCE, headers={"User-Agent": USER_AGENT}).json()
         for item in events_dict["metas"]:
-            if re.search(r'\b\d{2}H\d{2}\b', item["name"]) or 'dazn 1' in item["name"].lower():
+            if re.search(r'\b\d{2}[Hh:]\d{2}\b', item["name"]) or 'dazn 1' in item["name"].lower():
                 url, kid_key_pair = extract_keys_from_url(item["dynamicDUrls"][0]["url"])
                 filtered_channels.append({
-                    "title": '[X] ' + clean_title(item["name"]),
+                    "title": '[XE] ' + clean_title(item["name"]),
                     "manifest_url": url
                 })
                 if kid_key_pair:
