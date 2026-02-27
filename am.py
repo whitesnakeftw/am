@@ -13,12 +13,16 @@ HEADERS = {"User-Agent": USER_AGENT}
 
 
 def get_channels_dict() -> dict:
-    home_dict = requests.get(HOME_URL, headers=HEADERS).json()
-    sport_url = next((i for i in home_dict["items"] if i["info"].lower() == 'sport'))["externallink"]
-    sport_dict = requests.get(sport_url, headers=HEADERS).json()
-    last_minute_url = next((i for i in sport_dict["items"] if i["info"].lower() == 'last minute'))["externallink"]
-    last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
-    return last_minute_dict
+    try:
+        home_dict = requests.get(HOME_URL, headers=HEADERS).json()
+        sport_url = next((i for i in home_dict["items"] if i["info"].lower() == 'sport'))["externallink"]
+        sport_dict = requests.get(sport_url, headers=HEADERS).json()
+        last_minute_url = next((i for i in sport_dict["items"] if i["info"].lower() == 'last minute'))["externallink"]
+        last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
+        return last_minute_dict
+    except Exception as e:
+        print('Exception:', e)
+        return []
 
 
 def clean_item(item: dict) -> dict:

@@ -16,7 +16,7 @@ def create_m3u_entry(item: dict) -> str:
         entry += f"\n#KODIPROP:inputstream.adaptive.license_type=clearkey\n#KODIPROP:inputstream.adaptive.license_key={item['kid_key_pair']}"
     entry += f"\n{item['manifest_url']}"
     if item.get("headers"):
-        entry += f"?|{item['headers']}"
+        entry += f"{'&' if '?' in item['manifest_url'] else '?'}|{item['headers']}"
     return entry
 
 

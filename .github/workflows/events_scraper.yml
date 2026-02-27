@@ -1,4 +1,4 @@
-name: Events scraper
+name: Events and sk scraper
 
 on:
   workflow_dispatch:

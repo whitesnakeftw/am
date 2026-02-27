@@ -20,7 +20,7 @@ headers = {
 def login_to_site(url, password):
     try:
         session = requests.Session()
-        response = session.post(url, data={'password': password})
+        response = session.post(url, data={'password': password}, headers={'User-Agent': headers["user-agent"]})
         response.raise_for_status()
         return session
     except Exception as e:
@@ -40,7 +40,7 @@ def parseEventUrl(url: str, session: requests.Session) -> tuple[str, str, dict]:
     keys = None
     headers_dict = None
     try:
-        response = session.get(url).text.replace('&amp;', '&')
+        response = session.get(url, headers={'User-Agent': headers["user-agent"]}).text.replace('&amp;', '&')
         matches = re.search(r'pages/player\.html#(http(?:(?![?&](?:ck|headers)=)[^"])+)(?:[?&]ck=([^"&]+))?(?:[?&]headers=([^"&]+))?', response)
         if matches:
             mpd_url = matches[1]
@@ -70,22 +70,24 @@ def getCurrentDayIT():
 def getEventsDict() -> list[dict]:
     parsed_items = []
     sesh = login_to_site('https://thisnot.business', '2025')
-    response = sesh.get('https://thisnot.business/api/eventi.json', headers=headers)
-    response.raise_for_status()
-    events_dict = response.json()
-    current_day = getCurrentDayIT()
-    for item in events_dict["eventi"]:
-        if item.get("giorno", "").lower() == current_day:
-            url, kid_key_pair, headers_dict = parseEventUrl(item["link"], sesh)
-            if url is not None:
-                parsed_items.append({
-                    "title": f'[TN] {item["orario"]} {item["evento"]} ({item["competizione"]})',
-                    "manifest_url": url
-                })
-                if kid_key_pair:
-                    parsed_items[-1]["kid_key_pair"] = kid_key_pair
-                if headers_dict:
-                    parsed_items[-1]["headers"] = headers_dict
+    try:
+        response = sesh.get('https://thisnot.business/api/eventi.json', headers=headers)
+        events_dict = response.json()
+        current_day = getCurrentDayIT()
+        for item in events_dict["eventi"]:
+            if item.get("giorno", "").lower() == current_day:
+                url, kid_key_pair, headers_dict = parseEventUrl(item["link"], sesh)
+                if url is not None:
+                    parsed_items.append({
+                        "title": f'[TN] {item["orario"]} {item["evento"]} ({item["competizione"]}) [{item["canale"]}]',
+                        "manifest_url": url
+                    })
+                    if kid_key_pair:
+                        parsed_items[-1]["kid_key_pair"] = kid_key_pair
+                    if headers_dict:
+                        parsed_items[-1]["headers"] = headers_dict
+    except Exception as e:
+        print("Exception:", e)
     return parsed_items, len(parsed_items)
 
 

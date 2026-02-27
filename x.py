@@ -21,17 +21,20 @@ def extract_keys_from_url(url: str) -> tuple[str, str]:
 
 
 def getXchannelsDict() -> tuple[list[dict], int]:
-    events_dict = requests.get(SOURCE, headers={"User-Agent": USER_AGENT}).json()
     filtered_channels = []
-    for item in events_dict["metas"]:
-        if re.search(r'\b\d{2}H\d{2}\b', item["name"]) or 'dazn 1' in item["name"].lower():
-            url, kid_key_pair = extract_keys_from_url(item["dynamicDUrls"][0]["url"])
-            filtered_channels.append({
-                "title": '[X] ' + clean_title(item["name"]),
-                "manifest_url": url
-            })
-            if kid_key_pair:
-                filtered_channels[-1]["kid_key_pair"] = kid_key_pair
+    try:
+        events_dict = requests.get(SOURCE, headers={"User-Agent": USER_AGENT}).json()
+        for item in events_dict["metas"]:
+            if re.search(r'\b\d{2}H\d{2}\b', item["name"]) or 'dazn 1' in item["name"].lower():
+                url, kid_key_pair = extract_keys_from_url(item["dynamicDUrls"][0]["url"])
+                filtered_channels.append({
+                    "title": '[X] ' + clean_title(item["name"]),
+                    "manifest_url": url
+                })
+                if kid_key_pair:
+                    filtered_channels[-1]["kid_key_pair"] = kid_key_pair
+    except Exception as e:
+        print('Exception:', e)
     return filtered_channels, len(filtered_channels)
 
 
