@@ -2,10 +2,10 @@ from pathlib import Path
 import streamlink
 import requests
 import re
+from utils import USER_AGENT
 
 OUTFILE = Path("twitch.m3u8")
-USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
-CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
 GROUP_TITLE = "TWITCH"
 
 twitch_profiles = [
@@ -20,7 +20,7 @@ twitch_profiles = [
 
 
 def grab_profile_image(twitch_url):
-    response = requests.get(twitch_url, headers={"User-Agent": CHROME_UA}).text
+    response = requests.get(twitch_url, headers={"User-Agent": USER_AGENT}).text
     match = re.search(r'content="([^"]+?-profile_image-[^"]+?)"', response)
     if match:
         return match.group(1)
@@ -49,7 +49,7 @@ for profile in twitch_profiles:
         m3u8_content += f'#EXTINF:-1 tvg-logo="{channel_logo}" group-title="{GROUP_TITLE}",{channel_name}\n'
         m3u8_content += f"#EXTVLCOPT:http-referrer={profile}\n"
         m3u8_content += f"#EXTVLCOPT:http-origin={profile}\n"
-        m3u8_content += f"#EXTVLCOPT:http-user-agent={USER_AGENT}\n"
+        m3u8_content += f"#EXTVLCOPT:http-user-agent={IPHONE_UA}\n"
         m3u8_content += f"{stream_url}\n\n"
         print(f"ACTIVE stream found for: {profile}")
     else:

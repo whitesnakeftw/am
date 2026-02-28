@@ -16,7 +16,7 @@ AMSTAFF_URL = "https://test34344.herokuapp.com/filter.php"
 PASSWORD = "MandraKodi3"
 DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
-USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
+MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
 
 # ==============================
 # DATABASE CANALI
@@ -150,7 +150,7 @@ def extract_with_regex(text):
 def fetch_amstaff_channels():
     r = requests.get(
         AMSTAFF_URL,
-        headers={"User-Agent": USER_AGENT},
+        headers={"User-Agent": MK_USER_AGENT},
         params={"numTest": "A1A260"},
         timeout=15
     )

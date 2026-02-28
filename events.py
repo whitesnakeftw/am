@@ -1,5 +1,5 @@
 import am
-import x
+import xe
 import tn
 from sportzx import SportzxClient
 
@@ -36,8 +36,8 @@ def getAmChannels() -> tuple[str, int]:
     return channels, n
 
 
-def getXChannels() -> tuple[str, int]:
-    channels_dict, n = x.getXEventsDict()
+def getXeChannels() -> tuple[str, int]:
+    channels_dict, n = xe.getXeEventsDict()
     channels = create_m3u8_playlist(channels_dict)
     return channels, n
 
@@ -59,10 +59,10 @@ def getSportzxChannels() -> tuple[str, int]:
 
 
 am_channels, n_am = getAmChannels()
-x_channels, n_x = getXChannels()
+xe_channels, n_xe = getXeChannels()
 tn_channels, n_tn = getTnChannels()
 sportzx_channels, n_sportzx = getSportzxChannels()
 
 with open(OUTFILE, 'w', encoding='utf-8') as f:
-    f.write("#EXTM3U\n\n" + am_channels + x_channels + tn_channels + sportzx_channels)
-print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_x}(xe) + {n_tn}(tn) + {n_sportzx}(sportzx) entries.")
+    f.write("#EXTM3U\n\n" + am_channels + xe_channels + tn_channels + sportzx_channels)
+print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_xe}(xe) + {n_tn}(tn) + {n_sportzx}(sportzx) entries.")

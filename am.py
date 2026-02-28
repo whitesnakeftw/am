@@ -8,8 +8,8 @@ HOME_URL = "https://test34344.herokuapp.com/filter.php"
 PASSWORD = "MandraKodi3"
 DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
-USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
-HEADERS = {"User-Agent": USER_AGENT}
+MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
+HEADERS = {"User-Agent": MK_USER_AGENT}
 
 
 def getAmChannelsDict() -> dict:

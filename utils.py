@@ -1,5 +1,7 @@
 import base64
 
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+
 
 def hex_to_oct_keys(hex_string: str) -> str:
     def _hex_to_base64url(hex_str: str) -> str:

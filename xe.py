@@ -1,8 +1,8 @@
 import requests
 import re
+from utils import USER_AGENT
 
 SOURCE = R'https://streamvix.hayd.uk/eyJtZWRpYWZsb3dNYXN0ZXIiOmZhbHNlLCJkdnJFbmFibGVkIjpmYWxzZSwiZGlzYWJsZUxpdmVUdiI6ZmFsc2UsInZhdm9vTm9NZnBFbmFibGVkIjp0cnVlLCJ0cmFpbGVyRW5hYmxlZCI6dHJ1ZSwiZGlzYWJsZVZpeHNyYyI6ZmFsc2UsInZpeERpcmVjdCI6ZmFsc2UsInZpeERpcmVjdEZoZCI6ZmFsc2UsImNiMDFFbmFibGVkIjpmYWxzZSwiZ3VhcmRhaGRFbmFibGVkIjp0cnVlLCJndWFyZGFzZXJpZUVuYWJsZWQiOnRydWUsImd1YXJkb3NlcmllRW5hYmxlZCI6dHJ1ZSwiZ3VhcmRhZmxpeEVuYWJsZWQiOnRydWUsImV1cm9zdHJlYW1pbmdFbmFibGVkIjpmYWxzZSwibG9vbmV4RW5hYmxlZCI6ZmFsc2UsInRvb25pdGFsaWFFbmFibGVkIjpmYWxzZSwibG9vbmV4RW5hYmxlZCI6ZmFsc2UsImFuaW1lc2F0dXJuRW5hYmxlZCI6dHJ1ZSwiYW5pbWV3b3JsZEVuYWJsZWQiOnRydWUsImFuaW1ldW5pdHlFbmFibGVkIjp0cnVlLCJhbmltZXVuaXR5QXV0byI6ZmFsc2UsImFuaW1ldW5pdHlGaGQiOmZhbHNlLCJ2aXhQcm94eSI6ZmFsc2UsInZpeFByb3h5RmhkIjp0cnVlfQ==/catalog/tv/streamvix_live/genre=X-Eventi.json'
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 
 
 def clean_title(title: str) -> str:
@@ -20,7 +20,15 @@ def extract_keys_from_url(url: str) -> tuple[str, str]:
     return url, kid_key_pair
 
 
-def getXEventsDict() -> tuple[list[dict], int]:
+def extract_time(s: str) -> int:
+    match = re.search(r'\b(\d{2})[Hh:](\d{2})\b', s)
+    if not match:
+        return float("inf")
+    hh, mm = match.groups()
+    return int(hh) * 60 + int(mm)
+
+
+def getXeEventsDict() -> tuple[list[dict], int]:
     filtered_channels = []
     try:
         events_dict = requests.get(SOURCE, headers={"User-Agent": USER_AGENT}).json()
@@ -35,10 +43,11 @@ def getXEventsDict() -> tuple[list[dict], int]:
                     filtered_channels[-1]["kid_key_pair"] = kid_key_pair
     except Exception as e:
         print('Exception:', e)
-    return filtered_channels, len(filtered_channels)
+    sorted_by_time = sorted(filtered_channels, key=lambda x: extract_time(x["title"]))
+    return sorted_by_time, len(sorted_by_time)
 
 
 if __name__ == "__main__":
-    channels_dict = getXEventsDict()
+    channels_dict = getXeEventsDict()
     print(channels_dict)
     print(f"✅ Found {len(channels_dict[0])} channels from X-Eventi.")

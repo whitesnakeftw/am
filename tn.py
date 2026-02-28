@@ -5,7 +5,7 @@ import base64
 import html
 from datetime import datetime
 from urllib.parse import unquote
-from utils import hex_to_oct_keys
+from utils import hex_to_oct_keys, USER_AGENT
 
 headers = {
     'accept': '*/*',
@@ -14,7 +14,7 @@ headers = {
     'pragma': 'no-cache',
     'priority': 'u=1, i',
     'referer': 'https://thisnot.business/eventi.php',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
+    'user-agent': USER_AGENT,
 }
 
 
