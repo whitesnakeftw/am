@@ -1,6 +1,16 @@
 import base64
+import re
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
+
+
+def extract_time(s: str) -> int:
+    match = TIME_RE.search(s)
+    if not match:
+        return float("inf")
+    hh, mm = match.groups()
+    return int(hh) * 60 + int(mm)
 
 
 def hex_to_oct_keys(hex_string: str) -> str:

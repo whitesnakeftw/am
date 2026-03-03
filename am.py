@@ -2,7 +2,7 @@ import base64
 import binascii
 import re
 import requests
-from utils import hex_to_oct_keys
+from utils import hex_to_oct_keys, extract_time
 
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
 PASSWORD = "MandraKodi3"
@@ -21,7 +21,7 @@ def getAmChannelsDict() -> dict:
         last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
         return last_minute_dict
     except Exception as e:
-        print('Exception:', e)
+        print('Exception (am):', e)
         return []
 
 
@@ -72,9 +72,10 @@ def filter_items(channels_dict: dict) -> list[dict]:
     # Move actual events first
     events = [i for i in filtered_items if has_time_in_title(i.get("title", ""))]
     # linear_channels = [i for i in filtered_items if not has_time_in_title(i.get("title", ""))]
-    # ordered_items = events + linear_channels
-    ordered_items = events
-    return ordered_items
+    linear_channels = []
+    ordered_items = events + linear_channels
+    sorted_by_time = sorted(ordered_items, key=lambda x: extract_time(x["title"]))
+    return sorted_by_time
 
 
 if __name__ == "__main__":

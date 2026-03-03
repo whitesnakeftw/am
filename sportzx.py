@@ -290,7 +290,7 @@ class SportzxClient:
             nome_finale = f"{evento}{orario_part}{canale}".strip()
 
             # Pulizia
-            nome_pulito = re.sub(r'[^\w\s\-\:\(\)\,\.\']', ' ', nome_finale).strip()
+            nome_pulito = re.sub(r'[^\w\s\-\:\(\)\,\.\']', ' ', nome_finale).strip().replace(':', '\N{MODIFIER LETTER COLON}')
 
             gruppo = ch.event_cat if ch.event_cat else "Sportzx"
 

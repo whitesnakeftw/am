@@ -89,7 +89,7 @@ def getTnEventsDict() -> list[dict]:
                     if headers_dict:
                         parsed_items[-1]["headers"] = headers_dict
     except Exception as e:
-        print("Exception:", e)
+        print("Exception (tn):", e)
     return parsed_items, len(parsed_items)
 
 
