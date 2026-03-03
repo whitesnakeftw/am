@@ -16,6 +16,8 @@ twitch_profiles = [
     "https://www.twitch.tv/kingsleague",
     "https://www.twitch.tv/ilrossopiubelloditwitch",
     "https://www.twitch.tv/none_cerbero_podcast",
+    "https://www.twitch.tv/naded",
+    "https://www.twitch.tv/halo",
 ]
 
 
