@@ -1,5 +1,6 @@
 import requests
 import re
+import traceback
 from utils import USER_AGENT, TIME_RE, extract_time
 
 SOURCE = R'https://streamvix.hayd.uk/eyJtZWRpYWZsb3dNYXN0ZXIiOmZhbHNlLCJkdnJFbmFibGVkIjpmYWxzZSwiZGlzYWJsZUxpdmVUdiI6ZmFsc2UsInZhdm9vTm9NZnBFbmFibGVkIjp0cnVlLCJ0cmFpbGVyRW5hYmxlZCI6dHJ1ZSwiZGlzYWJsZVZpeHNyYyI6ZmFsc2UsInZpeERpcmVjdCI6ZmFsc2UsInZpeERpcmVjdEZoZCI6ZmFsc2UsImNiMDFFbmFibGVkIjpmYWxzZSwiZ3VhcmRhaGRFbmFibGVkIjp0cnVlLCJndWFyZGFzZXJpZUVuYWJsZWQiOnRydWUsImd1YXJkb3NlcmllRW5hYmxlZCI6dHJ1ZSwiZ3VhcmRhZmxpeEVuYWJsZWQiOnRydWUsImV1cm9zdHJlYW1pbmdFbmFibGVkIjpmYWxzZSwibG9vbmV4RW5hYmxlZCI6ZmFsc2UsInRvb25pdGFsaWFFbmFibGVkIjpmYWxzZSwibG9vbmV4RW5hYmxlZCI6ZmFsc2UsImFuaW1lc2F0dXJuRW5hYmxlZCI6dHJ1ZSwiYW5pbWV3b3JsZEVuYWJsZWQiOnRydWUsImFuaW1ldW5pdHlFbmFibGVkIjp0cnVlLCJhbmltZXVuaXR5QXV0byI6ZmFsc2UsImFuaW1ldW5pdHlGaGQiOmZhbHNlLCJ2aXhQcm94eSI6ZmFsc2UsInZpeFByb3h5RmhkIjp0cnVlfQ==/catalog/tv/streamvix_live/genre=X-Eventi.json'
@@ -34,7 +35,8 @@ def getXeEventsDict() -> tuple[list[dict], int]:
                 if kid_key_pair:
                     filtered_channels[-1]["kid_key_pair"] = kid_key_pair
     except Exception as e:
-        print('Exception (xe):', e)
+        print(f'(xe) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
+        traceback.print_exc()
     sorted_by_time = sorted(filtered_channels, key=lambda x: extract_time(x["title"]))
     return sorted_by_time, len(sorted_by_time)
 

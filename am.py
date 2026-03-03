@@ -2,6 +2,7 @@ import base64
 import binascii
 import re
 import requests
+import traceback
 from utils import hex_to_oct_keys, extract_time
 
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
@@ -21,7 +22,8 @@ def getAmChannelsDict() -> dict:
         last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
         return last_minute_dict
     except Exception as e:
-        print('Exception (am):', e)
+        print(f'(am) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
+        traceback.print_exc()
         return []
 
 

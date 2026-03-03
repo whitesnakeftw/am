@@ -3,9 +3,13 @@ import re
 import json
 import base64
 import html
+import traceback
 from datetime import datetime
 from urllib.parse import unquote
 from utils import hex_to_oct_keys, USER_AGENT
+
+BASE_URL_B64 = 'aHR0cHM6Ly90aGl' + 'zbm90LmJ1c2luZXNz'
+BASE_URL = base64.b64decode(BASE_URL_B64).decode("utf-8")
 
 headers = {
     'accept': '*/*',
@@ -13,7 +17,7 @@ headers = {
     'cache-control': 'no-cache',
     'pragma': 'no-cache',
     'priority': 'u=1, i',
-    'referer': 'https://thisnot.business/eventi.php',
+    'referer': f'{BASE_URL}/eventi.php',
     'user-agent': USER_AGENT,
 }
 
@@ -42,6 +46,13 @@ def parseEventUrl(url: str, session: requests.Session) -> tuple[str, str, dict]:
     headers_dict = None
     try:
         response = session.get(url, headers={'User-Agent': headers["user-agent"]}).text
+    except requests.exceptions.MissingSchema:
+        try:
+            response = session.get(BASE_URL + url, headers={'User-Agent': headers["user-agent"]}).text
+        except Exception as e:
+            print(f'(tn) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
+            traceback.print_exc()
+    try:
         response = html.unescape(response)
         matches = re.search(r'pages/player\.html#(http(?:(?![?&](?:ck|headers)=)[^"])+)(?:[?&]ck=([^"&]+))?(?:[?&]headers=([^"&]+))?', response)
         if matches:
@@ -60,7 +71,8 @@ def parseEventUrl(url: str, session: requests.Session) -> tuple[str, str, dict]:
                 headers_dict = None
             return mpd_url, keys, headers_dict
     except Exception as e:
-        print(f'Error during URL parsing: {e}')
+        print(f'(tn) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
+        traceback.print_exc()
         return None, None, None
 
 
@@ -71,9 +83,9 @@ def getCurrentDayIT():
 
 def getTnEventsDict() -> list[dict]:
     parsed_items = []
-    sesh = siteLogin('https://thisnot.business', '2025')
+    sesh = siteLogin(BASE_URL, '2025')
     try:
-        response = sesh.get('https://thisnot.business/api/eventi.json', headers=headers)
+        response = sesh.get(f'{BASE_URL}/api/eventi.json', headers=headers)
         events_dict = response.json()
         current_day = getCurrentDayIT()
         for item in events_dict["eventi"]:
@@ -89,7 +101,8 @@ def getTnEventsDict() -> list[dict]:
                     if headers_dict:
                         parsed_items[-1]["headers"] = headers_dict
     except Exception as e:
-        print("Exception (tn):", e)
+        print(f'(tn) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
+        traceback.print_exc()
     return parsed_items, len(parsed_items)
 
 

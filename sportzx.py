@@ -2,6 +2,7 @@ import requests
 import json
 import base64
 import re
+import traceback
 from typing import List, Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -90,7 +91,8 @@ class SportzxClient:
 
             return pt.decode("utf-8", errors="replace")
         except Exception as e:
-            print(f"Decryption error: {e}")
+            print(f"Decryption error:\n{e.__class__.__module__}.{e.__class__.__name__}: {e}")
+            traceback.print_exc()
             return ""
 
     def _fetch_and_decrypt(self, url: str) -> dict:
@@ -103,7 +105,8 @@ class SportzxClient:
                 return {}
             return json.loads(decrypted)
         except Exception as e:
-            print(f"Fetch/decrypt failed {url}: {e}")
+            print(f"Fetch/decrypt failed {url}:\n{e.__class__.__module__}.{e.__class__.__name__}: {e}")
+            traceback.print_exc()
             return {}
 
     def _get_api_url(self) -> Optional[str]:
@@ -129,7 +132,8 @@ class SportzxClient:
             r.raise_for_status()
             auth_token = r.json()["authToken"]["token"]
         except Exception as e:
-            print(f"Firebase Install error: {e}")
+            print(f"Firebase Install error:\n{e.__class__.__module__}.{e.__class__.__name__}: {e}")
+            traceback.print_exc()
             return None
 
         config_url = "https://firebaseremoteconfig.googleapis.com/v1/projects/446339309956/namespaces/firebase:fetch"
@@ -163,7 +167,8 @@ class SportzxClient:
             r.raise_for_status()
             return r.json().get("entries", {}).get("api_url")
         except Exception as e:
-            print(f"Remote Config error: {e}")
+            print(f"Remote Config error:\n{e.__class__.__module__}.{e.__class__.__name__}: {e}")
+            traceback.print_exc()
             return None
 
     def get_channels(self) -> List[SportzxChannel]:
