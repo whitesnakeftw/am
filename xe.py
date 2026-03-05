@@ -26,7 +26,7 @@ def getXeEventsDict() -> tuple[list[dict], int]:
     try:
         events_dict = requests.get(SOURCE, headers={"User-Agent": USER_AGENT}, timeout=15).json()
         for item in events_dict["metas"]:
-            if TIME_RE.search(item["name"]) or 'dazn 1' in item["name"].lower():
+            if (TIME_RE.search(item["name"]) or 'dazn 1' in item["name"].lower()) and 'secure_stream' not in item["dynamicDUrls"][0]["url"]:
                 url, kid_key_pair = extract_keys_from_url(item["dynamicDUrls"][0]["url"])
                 filtered_channels.append({
                     "title": '[XE] ' + clean_title(item["name"]),
