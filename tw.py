@@ -17,7 +17,13 @@ twitch_profiles = [
     "https://www.twitch.tv/ilrossopiubelloditwitch",
     "https://www.twitch.tv/none_cerbero_podcast",
     "https://www.twitch.tv/naded",
+    "https://www.twitch.tv/tylenul",
     "https://www.twitch.tv/halo",
+    "https://www.twitch.tv/patrizio_official",
+    "https://www.twitch.tv/matteohs",
+    "https://www.twitch.tv/marcomerrino",
+    "https://www.twitch.tv/ishowspeed",
+    "https://www.twitch.tv/andreadel1988",
 ]
 
 
