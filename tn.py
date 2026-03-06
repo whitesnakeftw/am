@@ -108,5 +108,5 @@ def getTnEventsDict() -> list[dict]:
 
 if __name__ == "__main__":
     events_dict = getTnEventsDict()
-    print(events_dict)
+    print(json.dumps(events_dict, indent=4))
     print(f"✅ Found {len(events_dict[0])} channels from TN.")

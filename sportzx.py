@@ -341,6 +341,7 @@ if __name__ == "__main__":
 
     print("Recupero canali...")
     canali = client.get_channels()
+    print(canali)
 
     print(f"Trovati {len(canali)} canali in totale")
 

@@ -1,4 +1,5 @@
 import base64
+import json
 import binascii
 import re
 import requests
@@ -83,5 +84,5 @@ def filter_items(channels_dict: dict) -> list[dict]:
 if __name__ == "__main__":
     channels_dict = getAmChannelsDict()
     filtered_items = filter_items(channels_dict)
-    print(filtered_items)
+    print(json.dumps(filtered_items, indent=4))
     print(f"✅ Found {len(filtered_items)} channels from AM.")
