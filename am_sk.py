@@ -77,8 +77,6 @@ CHANNELS_DB = {
     "nickelodeon": {"nome": "Nickelodeon", "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/italy/nickelodeon-it.png", "group": "Sky Bambini"},
     "cartoonnetwork": {"nome": "Cartoon Network", "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/italy/cartoon-network-it.png", "group": "Sky Bambini"},
     "boomerang": {"nome": "Boomerang", "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/italy/boomerang-it.png", "group": "Sky Bambini"},
-    "mrbean": {"nome": "Mr Bean Channel", "logo": "https://i.postimg.cc/rmwVGQNn/Mr-Bean-29-logo-svg.png", "group": "Sky Bambini"},
-    "boing": {"nome": "Boing", "logo": "", "group": "Sky Bambini"},
 }
 
 
@@ -177,7 +175,8 @@ def fetch_amstaff_channels():
     def walk(o):
         if isinstance(o, dict):
             if "title" in o and "myresolve" in o:
-                found.append((o["title"], o["myresolve"], o.get("thumbnail", "")))
+                if 'boing' not in o["title"].lower():  # Exclude unwanted channels
+                    found.append((o["title"], o["myresolve"], o.get("thumbnail", "")))
             for v in o.values():
                 walk(v)
         elif isinstance(o, list):
@@ -222,6 +221,7 @@ def generate_m3u(channels):
 
     # Make a mutable copy of fetched channels. It will remove items as they are placed
     remaining = list(channels)
+    n_channels = len(remaining)
     # First, emit channels in the order defined by CHANNELS_DB. For each DB entry,
     # find the first remaining fetched channel that matches it and output it
     for db_key, db_meta in CHANNELS_DB.items():
@@ -256,7 +256,7 @@ def generate_m3u(channels):
     with open(OUTFILE, "w", encoding="utf-8") as f:
         f.write(m3u)
 
-    print(f"✅ Playlist {OUTFILE} created.")
+    print(f"✅ Playlist {OUTFILE} created with {n_channels} channels.")
 
 # ==============================
 # MAIN
