@@ -11,6 +11,7 @@ GROUP_TITLE = "TWITCH"
 twitch_profiles = [
     "https://www.twitch.tv/grenbaud",
     "https://www.twitch.tv/therealmarzaa",
+    "https://www.twitch.tv/lollolacustre",
     "https://www.twitch.tv/gioee",
     "https://www.twitch.tv/kingsleague_it",
     "https://www.twitch.tv/kingsleague",

@@ -10,7 +10,6 @@ SOURCE = base64.b64decode(SOURCE_B64).decode("utf-8")
 
 
 def clean_title(title: str) -> str:
-    title = re.sub(r' {2,}', " ", title)
     title = title.replace('\x8f', '').replace("\N{LARGE RED CIRCLE}", "").strip()
     return title
 

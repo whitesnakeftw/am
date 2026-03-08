@@ -51,6 +51,14 @@ def clean_item(item: dict) -> dict:
         kid_key_pair = ""
 
     item["title"] = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
+    item["title"] = re.sub(r' ?\([^)(]+\)', '', item["title"])
+    if '.dazn.' in manifest_url:
+        item["title"] += ' [DAZN]'
+    elif '_dazn_' in manifest_url:
+        item["title"] += ' [DAZN-CH]'
+    elif '_spalk_' in manifest_url:
+        item["title"] += '[SKY-CH]'
+
     item["manifest_url"] = manifest_url
     item["kid_key_pair"] = kid_key_pair
     if headers:
