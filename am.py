@@ -58,6 +58,8 @@ def clean_item(item: dict) -> dict:
         item["title"] += ' [DAZN-CH]'
     elif '_spalk_' in manifest_url:
         item["title"] += '[SKY-CH]'
+    elif '_blue_' in manifest_url:
+        item["title"] += '[BLUE SPORT]'
 
     item["manifest_url"] = manifest_url
     item["kid_key_pair"] = kid_key_pair
