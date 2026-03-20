@@ -6,7 +6,6 @@ import requests
 # ==============================
 # CONFIG
 # ==============================
-
 DEBUG = False
 
 OUTFILE = "sky.m3u8"
@@ -18,10 +17,10 @@ DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
 MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
 
+
 # ==============================
 # DATABASE CANALI
 # ==============================
-
 CHANNELS_DB = {
     "dazn": {"nome": "DAZN 1", "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/belgium/dazn-1-be.png?raw=true", "group": "Sky Sport"},
     "sport24": {"nome": "Sky Sport 24", "logo": "https://pixel.disco.nowtv.it/logo/skychb_35_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Sport"},
@@ -83,7 +82,6 @@ CHANNELS_DB = {
 # ==============================
 # UTILS
 # ==============================
-
 def clean_m3u_text(text):
     if not text:
         return text
@@ -104,36 +102,35 @@ def match_channel(title):
             return v
     return None
 
+
 # ==============================
 # DECODE AMSTAFF
 # ==============================
-
-
 def decode_amstaff(encoded):
+    import binascii
+
     if encoded.startswith("amstaff@@"):
         encoded = encoded[9:]
 
     encoded = encoded.strip()
-    encoded += "=" * (-len(encoded) % 4)
 
     try:
-        decoded = base64.b64decode(encoded).decode("utf-8")
-    except:
-        return None
+        decoded = base64.b64decode(encoded + "=" * (-len(encoded) % 4)).decode("utf-8")
+    except (binascii.Error, ValueError):
+        decoded = encoded
 
     if "|" not in decoded or ":" not in decoded:
-        return None
+        return None, None, None
 
     url, key_part = decoded.split("|", 1)
     key_id, key = key_part.split(":", 1)
 
     return url, key_id, key
 
+
 # ==============================
 # FETCH (FIX JSON)
 # ==============================
-
-
 def extract_with_regex(text):
     results = []
     pattern = re.compile(
@@ -186,11 +183,10 @@ def fetch_amstaff_channels():
     walk(data)
     return found
 
+
 # ==============================
 # M3U
 # ==============================
-
-
 def generate_m3u(channels):
     m3u = f'#EXTM3U url-tvg="{TVG_URL}"\n\n'
 
@@ -258,11 +254,10 @@ def generate_m3u(channels):
 
     print(f"✅ Playlist {OUTFILE} created with {n_channels} channels.")
 
+
 # ==============================
 # MAIN
 # ==============================
-
-
 if __name__ == "__main__":
     channels = fetch_amstaff_channels()
     generate_m3u(channels)
