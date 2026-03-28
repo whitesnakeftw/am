@@ -8,7 +8,7 @@ TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 def extract_time(s: str) -> int:
     match = TIME_RE.search(s)
     if not match:
-        return float("inf")
+        return 0  # float("inf")
     hh, mm = match.groups()
     return int(hh) * 60 + int(mm)
 

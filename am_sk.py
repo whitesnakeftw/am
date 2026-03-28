@@ -6,7 +6,7 @@ import requests
 # ==============================
 # CONFIG
 # ==============================
-DEBUG = False
+DEBUG = True
 
 OUTFILE = "sky.m3u8"
 TVG_URL = "https://github.com/whitesnakeftw/epg/releases/download/1.0.0/super.guide.xml.gz"
@@ -189,13 +189,14 @@ def fetch_amstaff_channels():
 # ==============================
 def generate_m3u(channels):
     m3u = f'#EXTM3U url-tvg="{TVG_URL}"\n\n'
+    n_channels = 0
 
     # Helper to process a single (title, encoded, thumbnail) entry and append it to m3u
     def _process_item(raw_title, encoded_item, thumbnail=""):
         title = clean_m3u_text(raw_title)
 
         decoded = decode_amstaff(encoded_item)
-        if not decoded:
+        if not decoded[0]:
             print(f"⚠️ decode_amstaff failed for title={repr(title)}")
             return False
 
@@ -213,11 +214,12 @@ def generate_m3u(channels):
         m3u += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
         m3u += f'#KODIPROP:inputstream.adaptive.license_key={key_id}:{key}\n'
         m3u += f'{url}\n\n'
+        nonlocal n_channels
+        n_channels += 1
         return True
 
     # Make a mutable copy of fetched channels. It will remove items as they are placed
     remaining = list(channels)
-    n_channels = len(remaining)
     # First, emit channels in the order defined by CHANNELS_DB. For each DB entry,
     # find the first remaining fetched channel that matches it and output it
     for db_key, db_meta in CHANNELS_DB.items():
@@ -228,10 +230,13 @@ def generate_m3u(channels):
             if matched is not db_meta:
                 continue
             dec = decode_amstaff(encoded)
-            url = dec[0] if dec else ""
-            if "CMAF_CTR_H" in url or "dazn" in url:
-                found_index = idx
-                break
+            if dec[0]:
+                url = dec[0]
+                if "CMAF_CTR_H" in url or "dazn" in url:
+                    found_index = idx
+                    break
+            else:
+                url = ""
 
         # If no FHD match found, fall back to the first matching entry (SD or unknown)
         if found_index is None:

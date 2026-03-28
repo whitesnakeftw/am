@@ -4,7 +4,7 @@ import binascii
 import re
 import requests
 import traceback
-from utils import hex_to_oct_keys, extract_time
+from utils import hex_to_oct_keys, extract_time, TIME_RE
 
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
 PASSWORD = "MandraKodi3"
@@ -12,6 +12,28 @@ DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
 MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
 HEADERS = {"User-Agent": MK_USER_AGENT}
+
+TIMES_DICT = {
+    '10:56': '12:30',
+    '13:26': '15:00',
+    '13:41': '15:00',
+    '16:11': '18:00',
+    '18:26': '20:45',
+}
+
+
+def fix_time(title_with_time: str) -> str:
+    try:
+        hours, minutes = TIME_RE.search(title_with_time).groups()
+        if f'{hours}:{minutes}' in TIMES_DICT.keys():
+            hours, minutes = TIMES_DICT[f'{hours}:{minutes}'].split(':')
+        else:
+            seconds = (int(hours) * 3600 + int(minutes) * 60) + 3600  # +1 hour
+            hours = f'{seconds // 3600}'
+            minutes = f'{(seconds % 3600) // 60:02d}'
+    except AttributeError:
+        return title_with_time
+    return TIME_RE.sub(f'{hours}:{minutes}', title_with_time)
 
 
 def getAmChannelsDict() -> dict:
@@ -52,14 +74,15 @@ def clean_item(item: dict) -> dict:
 
     item["title"] = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
     item["title"] = re.sub(r' ?\([^)(]+\)', '', item["title"])
+    item["title"] = fix_time(item["title"])
     if '.dazn.' in manifest_url:
         item["title"] += ' [DAZN]'
     elif '_dazn_' in manifest_url:
         item["title"] += ' [DAZN-CH]'
     elif '_spalk_' in manifest_url:
-        item["title"] += '[SKY-CH]'
+        item["title"] += ' [SKY-CH]'
     elif '_blue_' in manifest_url:
-        item["title"] += '[BLUE SPORT]'
+        item["title"] += ' [BLUE SPORT]'
 
     item["manifest_url"] = manifest_url
     item["kid_key_pair"] = kid_key_pair
@@ -76,6 +99,13 @@ def has_time_in_title(title: str) -> bool:
     return bool(re.match(r'.*\b\d{1,2}:\d{2}\b', title))
 
 
+def has_special_string_in_title(title: str) -> bool:
+    if any(x in title.upper() for x in ['SKY CH', 'GP ']):
+        return True
+    else:
+        return False
+
+
 def filter_items(channels_dict: dict) -> list[dict]:
     filtered_items = []
     for item in channels_dict["items"]:
@@ -83,7 +113,7 @@ def filter_items(channels_dict: dict) -> list[dict]:
             if "amstaff@@" in item["myresolve"] or any(x in item["myresolve"] for x in [".m3u8", ".mpd", ".livx"]):
                 filtered_items.append(clean_item(item))
     # Move actual events first
-    events = [i for i in filtered_items if has_time_in_title(i.get("title", ""))]
+    events = [i for i in filtered_items if has_time_in_title(i.get("title", "")) or has_special_string_in_title(i.get("title", ""))]
     # linear_channels = [i for i in filtered_items if not has_time_in_title(i.get("title", ""))]
     linear_channels = []
     ordered_items = events + linear_channels
