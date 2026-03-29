@@ -43,6 +43,7 @@ def getAmChannelsDict() -> dict:
         sport_dict = requests.get(sport_url, headers=HEADERS).json()
         last_minute_url = next((i for i in sport_dict["items"] if i["info"].lower() == 'last minute'))["externallink"]
         last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
+        # print(last_minute_dict)
         return last_minute_dict
     except Exception as e:
         print(f'(am) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
@@ -95,29 +96,16 @@ def clean_item(item: dict) -> dict:
     return item
 
 
-def has_time_in_title(title: str) -> bool:
-    return bool(re.match(r'.*\b\d{1,2}:\d{2}\b', title))
-
-
-def has_special_string_in_title(title: str) -> bool:
-    if any(x in title.upper() for x in ['SKY CH', 'GP ']):
-        return True
-    else:
-        return False
-
-
 def filter_items(channels_dict: dict) -> list[dict]:
     filtered_items = []
     for item in channels_dict["items"]:
         if "myresolve" in item:
             if "amstaff@@" in item["myresolve"] or any(x in item["myresolve"] for x in [".m3u8", ".mpd", ".livx"]):
+                # Avoid linear channels
+                if 'CH 01' in item["title"]:
+                    break
                 filtered_items.append(clean_item(item))
-    # Move actual events first
-    events = [i for i in filtered_items if has_time_in_title(i.get("title", "")) or has_special_string_in_title(i.get("title", ""))]
-    # linear_channels = [i for i in filtered_items if not has_time_in_title(i.get("title", ""))]
-    linear_channels = []
-    ordered_items = events + linear_channels
-    sorted_by_time = sorted(ordered_items, key=lambda x: extract_time(x["title"]))
+    sorted_by_time = sorted(filtered_items, key=lambda x: extract_time(x["title"]))
     return sorted_by_time
 
 
