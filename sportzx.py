@@ -28,7 +28,7 @@ class SportzxChannel:
 
 
 class SportzxClient:
-    def __init__(self, excluded_categories: List[str] = None, timeout: int = 12):
+    def __init__(self, excluded_categories: List[str] = None, timeout: int = 20):
         self.excluded_categories = set(c.lower() for c in (excluded_categories or []))
         self.timeout = timeout
         self.session = requests.Session()

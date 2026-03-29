@@ -57,6 +57,7 @@ def getSportzxChannels() -> tuple[str, int]:
     if channels_dict:
         channels, n = client.generate_m3u(channels=channels_dict, filename="", generic_logo="")
     else:
+        channels, n = "", 0
         print("No channels found from SPORTZX")
     return channels, n
 
