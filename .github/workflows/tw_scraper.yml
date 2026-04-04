@@ -52,7 +52,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "*.m3u8"
-          allowUpdates: true
+          allowUpdates: false
           generateReleaseNotes: false
           replacesArtifacts: true
           removeArtifacts: true

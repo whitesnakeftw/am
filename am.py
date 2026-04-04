@@ -17,20 +17,33 @@ TIMES_DICT = {
     '10:56': '12:30',
     '13:26': '15:00',
     '13:41': '15:00',
+    '15:56': '18:00',
     '16:11': '18:00',
     '18:26': '20:45',
 }
 
 
 def fix_time(title_with_time: str) -> str:
+    def _is_dst() -> bool:
+        from datetime import datetime, timedelta
+        from zoneinfo import ZoneInfo
+
+        now = datetime.now(ZoneInfo('Europe/Rome'))
+        is_dst = now.dst() != timedelta(0)
+        return True if is_dst else False
+
+    def _add_hour(hh: str, mm: str) -> tuple[str, str]:
+        secs = (int(hh) * 3600 + int(mm) * 60) + 3600
+        return f'{secs // 3600}', f'{(secs % 3600) // 60:02d}'
+
     try:
         hours, minutes = TIME_RE.search(title_with_time).groups()
+        if _is_dst():
+            hours, minutes = _add_hour(hours, minutes)
         if f'{hours}:{minutes}' in TIMES_DICT.keys():
             hours, minutes = TIMES_DICT[f'{hours}:{minutes}'].split(':')
         else:
-            seconds = (int(hours) * 3600 + int(minutes) * 60) + 3600  # +1 hour
-            hours = f'{seconds // 3600}'
-            minutes = f'{(seconds % 3600) // 60:02d}'
+            hours, minutes = _add_hour(hours, minutes)
     except AttributeError:
         return title_with_time
     return TIME_RE.sub(f'{hours}:{minutes}', title_with_time)
