@@ -88,18 +88,20 @@ def getTnEventsDict() -> list[dict]:
         response = sesh.get(f'{BASE_URL}/api/eventi.json', headers=headers)
         events_dict = response.json()
         current_day = getCurrentDayIT()
-        for item in events_dict["eventi"]:
-            if item.get("giorno", "").lower() == current_day:
-                url, kid_key_pair, headers_dict = parseEventUrl(item["link"], sesh)
-                if url is not None:
-                    parsed_items.append({
-                        "title": f'[TN] {item["orario"]} {item["evento"]} ({item["competizione"]}) [{html.unescape(item["canale"])}]',
-                        "manifest_url": url
-                    })
-                    if kid_key_pair:
-                        parsed_items[-1]["kid_key_pair"] = kid_key_pair
-                    if headers_dict:
-                        parsed_items[-1]["headers"] = headers_dict
+        today_events = [item for item in events_dict["eventi"] if item.get("giorno", "").lower() == current_day]
+        if not today_events:
+            today_events = [item for item in events_dict["eventi"] if item.get("giorno", "").lower() == ""]
+        for item in today_events:
+            url, kid_key_pair, headers_dict = parseEventUrl(item["link"], sesh)
+            if url is not None:
+                parsed_items.append({
+                    "title": f'[TN] {item["orario"]} {item["evento"]} ({item["competizione"]}) [{html.unescape(item["canale"])}]',
+                    "manifest_url": url
+                })
+                if kid_key_pair:
+                    parsed_items[-1]["kid_key_pair"] = kid_key_pair
+                if headers_dict:
+                    parsed_items[-1]["headers"] = headers_dict
     except Exception as e:
         print(f'(tn) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         traceback.print_exc()
