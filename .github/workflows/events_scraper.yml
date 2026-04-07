@@ -64,7 +64,7 @@ jobs:
 
       - name: Wait for deletion to propagate
         if: steps.tag_check.outputs.exists == 'true'
-        run: sleep 6
+        run: sleep 10
         shell: bash
 
       - name: Verify tag and release deletion
