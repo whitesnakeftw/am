@@ -28,7 +28,7 @@ def hex_to_oct_keys(hex_string: str) -> str:
 
     for delim in (',', ' '):
         if delim in hex_string:
-            pairs_list = [item for item in hex_string.split(delim) if item.strip()]  # if item.strip() removes empty arguments
+            pairs_list = [item for item in hex_string.split(delim) if item.strip()]  # 'if item.strip()' removes empty arguments stemming from ' ' as delim
             break
     result = ""
     for item in pairs_list:

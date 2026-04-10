@@ -89,18 +89,19 @@ def clean_item(item: dict) -> dict:
     if len(kid_key_pair) < 64 or re.search(r'^0+:0+$', kid_key_pair):
         kid_key_pair = ""
 
-    item["title"] = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
-    item["title"] = re.sub(r' ?\([^)(]+\)', '', item["title"])
-    item["title"] = fix_time(item["title"])
+    title = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
+    title = re.sub(r' ?\([^)(]+\)', '', title)
+    title = fix_time(title)
     if '.dazn.' in manifest_url:
-        item["title"] += ' [DAZN]'
+        title += ' [DAZN]'
     elif '_dazn_' in manifest_url:
-        item["title"] += ' [DAZN-CH]'
+        title += ' [DAZN-CH]'
     elif '_spalk_' in manifest_url:
-        item["title"] += ' [SKY-CH]'
+        title += ' [SKY-CH]'
     elif '_blue_' in manifest_url:
-        item["title"] += ' [BLUE SPORT]'
+        title += ' [BLUE SPORT]'
 
+    item["title"] = title
     item["manifest_url"] = manifest_url
     item["kid_key_pair"] = kid_key_pair
     if headers:

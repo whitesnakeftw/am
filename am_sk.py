@@ -16,6 +16,7 @@ PASSWORD = "MandraKodi3"
 DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
 MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
+SECRET = "my_secret_key"
 
 
 # ==============================
@@ -104,28 +105,33 @@ def match_channel(title):
 
 
 # ==============================
+# RESOLVE CHANNEL
+# ==============================
+def resolve_channel(channel_id):
+    res = requests.get(f'https://test34344.herokuapp.com/filter.php?numTest=A1A159&id={channel_id}', headers={"User-Agent": MK_USER_AGENT})
+    base64_data = res.json()["data"]
+    data = base64.b64decode(base64_data)
+    key_bytes = SECRET.encode()
+
+    out = bytearray()
+    for i in range(len(data)):
+        out.append(data[i] ^ key_bytes[i % len(key_bytes)])
+
+    return out.decode("utf-8")
+
+
+# ==============================
 # DECODE AMSTAFF
 # ==============================
 def decode_amstaff(encoded):
-    import binascii
-
-    if encoded.startswith("amstaff@@"):
-        encoded = encoded[9:]
-
-    encoded = encoded.strip()
-
-    try:
-        decoded = base64.b64decode(encoded + "=" * (-len(encoded) % 4)).decode("utf-8")
-    except (binascii.Error, ValueError):
-        decoded = encoded
-
-    if "|" not in decoded or ":" not in decoded:
+    if '@@' in encoded:
+        ch_id = encoded.split('@@')[-1].strip()
+        channel_resolved = resolve_channel(ch_id)
+        print(channel_resolved)
+        dict = json.loads(channel_resolved)
+        return dict["manifest"], dict["kid"], dict["key"]
+    else:
         return None, None, None
-
-    url, key_part = decoded.split("|", 1)
-    key_id, key = key_part.split(":", 1)
-
-    return url, key_id, key
 
 
 # ==============================
@@ -143,14 +149,21 @@ def extract_with_regex(text):
 
 
 def fetch_amstaff_channels():
-    r = requests.get(
+    r_tv = requests.get(
         AMSTAFF_URL,
         headers={"User-Agent": MK_USER_AGENT},
         params={"numTest": "A1A260"},
         timeout=15
     )
 
-    text = r.text.strip()
+    r_sport = requests.get(
+        AMSTAFF_URL,
+        headers={"User-Agent": MK_USER_AGENT},
+        params={"numTest": "A1A165"},
+        timeout=15
+    )
+
+    text = r_tv.text.strip() + r_sport.text.strip()
 
     if DEBUG:
         print('\n\n', text, '\n\n')

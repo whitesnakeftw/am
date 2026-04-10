@@ -24,6 +24,7 @@ twitch_profiles = [
     "https://www.twitch.tv/tumblurr",
     "https://www.twitch.tv/ilrossopiubelloditwitch",
     "https://www.twitch.tv/therealmarzaa",
+    "https://www.twitch.tv/dariomocciatwitch",
     "https://www.twitch.tv/matteohs",
     "https://www.twitch.tv/marcomerrino",
     "https://www.twitch.tv/andreadel1988",
