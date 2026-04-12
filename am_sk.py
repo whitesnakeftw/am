@@ -2,6 +2,7 @@ import base64
 import json
 import re
 import requests
+from utils import extract_expiration
 
 # ==============================
 # CONFIG
@@ -162,14 +163,12 @@ def fetch_amstaff_channels():
         timeout=15
     )
 
-    text = r_tv.text.strip() + r_sport.text.strip()
-
-    if DEBUG:
-        print('\n\n', text, '\n\n')
-
     try:
-        data = json.loads(text)
+        data = json.loads(r_tv.text)["items"] + json.loads(r_sport.text)["items"]
+        if DEBUG:
+            print('\n\n', json.dumps(data, indent=4), '\n\n')
     except json.JSONDecodeError:
+        text = r_tv.text.strip() + r_sport.text.strip()
         cleaned = re.sub(r",\s*([}\]])", r"\1", text)
         cleaned = re.sub(r"//.*?$", "", cleaned, flags=re.MULTILINE)
         cleaned = re.sub(r"/\*.*?\*/", "", cleaned, flags=re.DOTALL)
@@ -220,11 +219,14 @@ def generate_m3u(channels):
         group = meta["group"] if meta else "Altro"
         tvg_id = name.replace(" ", '') + '.it'
         quality = "FHD" if ("CMAF_CTR_H" in url or "dazn" in url) else "SD"
+        expiration = extract_expiration(url)
 
         nonlocal m3u
         m3u += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{group} (Now) {quality}",{name} ({quality})\n'
         m3u += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
         m3u += f'#KODIPROP:inputstream.adaptive.license_key={key_id}:{key}\n'
+        if expiration:
+            m3u += f'# Expiration: {expiration}\n'
         m3u += f'{url}\n\n'
         nonlocal n_channels
         n_channels += 1

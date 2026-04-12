@@ -3,6 +3,7 @@ import am
 import xe
 import tn
 from sportzx import SportzxClient
+from utils import extract_expiration
 
 OUTFILE = "last_minute.m3u8"
 
@@ -12,12 +13,15 @@ def create_m3u_entry(item: dict) -> str:
         item["headers"] = '|'.join(f'{k}={v}' for k, v in item["headers"].items())
     item["title"] = item["title"].replace(':', '\N{MODIFIER LETTER COLON}')
     item["title"] = re.sub(r' {2,}', " ", item["title"])
+    expiration = extract_expiration(item.get("manifest_url", "") + item.get("headers", ""))
 
     entry = f'#EXTINF:-1 group-title="ULTIMO MINUTO",{item["title"]}'
     if item.get("headers"):
         entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers'].replace('|', '&')}"
     if item.get("kid_key_pair"):
         entry += f"\n#KODIPROP:inputstream.adaptive.license_type=clearkey\n#KODIPROP:inputstream.adaptive.license_key={item['kid_key_pair']}"
+    if expiration:
+        entry += f"\n# Expiration: {expiration}"
     entry += f"\n{item['manifest_url']}"
     if item.get("headers"):
         entry += f"{'&' if '?' in item['manifest_url'] else '?'}|{item['headers']}"
