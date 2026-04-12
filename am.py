@@ -15,6 +15,7 @@ HEADERS = {"User-Agent": MK_USER_AGENT}
 
 TIMES_DICT = {
     '10:56': '12:30',
+    '13:11': '15:00',
     '13:26': '15:00',
     '13:41': '15:00',
     '15:56': '18:00',
@@ -36,21 +37,22 @@ def fix_time(title_with_time: str) -> str:
         is_dst = now.dst() != timedelta(0)
         return True if is_dst else False
 
-    def _add_hour(hh: str, mm: str) -> tuple[str, str]:
-        secs = (int(hh) * 3600 + int(mm) * 60) + 3600
-        return f'{secs // 3600}', f'{(secs % 3600) // 60:02d}'
+    # def _add_hours_in_secs(hh: str, mm: str, secs_to_add: int) -> tuple[str, str]:
+    #     secs = (int(hh) * 3600 + int(mm) * 60) + secs_to_add
+    #     return f'{secs // 3600}', f'{(secs % 3600) // 60:02d}'
 
     try:
-        hours, minutes = TIME_RE.search(title_with_time).groups()
+        hours, minutes = map(int, TIME_RE.search(title_with_time).groups())
         if _is_dst():
-            hours, minutes = _add_hour(hours, minutes)
-        if f'{hours}:{minutes}' in TIMES_DICT.keys():
-            hours, minutes = TIMES_DICT[f'{hours}:{minutes}'].split(':')
+            hours += 1
+        time_str = f'{hours:02d}:{minutes:02d}'
+        if time_str in TIMES_DICT.keys():
+            hours, minutes = map(int, TIMES_DICT[time_str].split(':'))
         else:
-            hours, minutes = _add_hour(hours, minutes)
+            hours += 1
     except AttributeError:
         return title_with_time
-    return TIME_RE.sub(f'{hours}:{minutes}', title_with_time)
+    return TIME_RE.sub(f'{hours:02d}:{minutes:02d}', title_with_time)
 
 
 def getAmChannelsDict() -> dict:
