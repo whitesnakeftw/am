@@ -127,7 +127,6 @@ def decode_amstaff(encoded):
     if '@@' in encoded:
         ch_id = encoded.split('@@')[-1].strip()
         channel_resolved = resolve_channel(ch_id)
-        print(channel_resolved)
         dict = json.loads(channel_resolved)
         return dict["manifest"], dict["kid"], dict["key"]
     else:
