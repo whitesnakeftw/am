@@ -21,10 +21,16 @@ jobs:
         with:
           python-version: '3.14'
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-streamlink-${{ hashFiles('.github/workflows/tw_scraper.yml') }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install streamlink
+          pip install --upgrade streamlink
 
       - name: Run scraper
         env:
