@@ -29,14 +29,18 @@ jobs:
         with:
           python-version: '3.10'
       
-      - name: Cache pip
+      - name: Cache venv
+        id: cache-venv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-events-${{ hashFiles('.github/workflows/events_scraper.yml') }}
-      
-      - name: Install dependencies
+          path: .venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('.github/workflows/events_scraper.yml') }}
+
+      - name: Set up venv and install dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
+          python -m venv .venv
+          source .venv/bin/activate
           python -m pip install --upgrade pip
           pip install requests pycryptodome pyjwt
 
@@ -44,13 +48,13 @@ jobs:
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-          python events.py
+          .venv/bin/python events.py
       
       - name: Run sk scraper
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-          python am_sk.py
+          .venv/bin/python am_sk.py
 
       - name: Check whether tag exists # only needed for the first run
         id: tag_check

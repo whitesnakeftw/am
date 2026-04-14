@@ -7,7 +7,7 @@ from utils import extract_expiration
 # ==============================
 # CONFIG
 # ==============================
-DEBUG = True
+DEBUG = False
 
 OUTFILE = "sky.m3u8"
 TVG_URL = "https://github.com/whitesnakeftw/epg/releases/download/1.0.0/super.guide.xml.gz"
