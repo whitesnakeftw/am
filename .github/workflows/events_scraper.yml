@@ -42,11 +42,14 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           python -m pip install --upgrade pip
-          pip install requests pycryptodome pyjwt python-dotenv
+          pip install requests pycryptodome pyjwt python-dotenv beautifulsoup4
 
       - name: Run events scraper
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
+          USER: ${{ secrets.USER }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          URL: ${{ secrets.URL }}
         run: |
           .venv/bin/python events.py
       

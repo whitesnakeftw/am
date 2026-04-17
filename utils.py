@@ -6,6 +6,12 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 
 
+def base64decode(data) -> str:
+    from urllib.parse import unquote
+    clean_data = unquote(data)
+    return base64.b64decode(clean_data + '=' * (-len(clean_data) % 4)).decode('utf-8')
+
+
 def extract_time(s: str) -> int:
     match = TIME_RE.search(s)
     if not match:

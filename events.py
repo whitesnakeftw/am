@@ -2,6 +2,7 @@ import re
 import am
 import xe
 import tn
+import tnd_events
 from sportzx import SportzxClient
 from utils import extract_expiration
 
@@ -55,6 +56,12 @@ def getTnChannels() -> tuple[str, int]:
     return channels, n
 
 
+def getTndChannels() -> tuple[str, int]:
+    events_dict, n = tnd_events.getTndEventsDict()
+    channels = create_m3u8_playlist(events_dict)
+    return channels, n
+
+
 def getSportzxChannels() -> tuple[str, int]:
     client = SportzxClient(excluded_categories=["adult", "test", "xxx", "cricket", "icc ", "isl", "psl", "indian pr", "f1", "motogp", "wwe"])
     channels_dict = client.get_channels()
@@ -69,8 +76,9 @@ def getSportzxChannels() -> tuple[str, int]:
 am_channels, n_am = getAmChannels()
 xe_channels, n_xe = getXeChannels()
 tn_channels, n_tn = getTnChannels()
+tnd_channels, n_tnd = getTndChannels()
 sportzx_channels, n_sportzx = getSportzxChannels()
 
 with open(OUTFILE, 'w', encoding='utf-8') as f:
-    f.write("#EXTM3U\n\n" + am_channels + xe_channels + tn_channels + sportzx_channels)
-print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_xe}(xe) + {n_tn}(tn) + {n_sportzx}(sportzx) entries.")
+    f.write("#EXTM3U\n\n" + am_channels + xe_channels + tn_channels + tnd_channels + sportzx_channels)
+print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_xe}(xe) + {n_tn}(tn) + {n_tnd}(tnd) + {n_sportzx}(sportzx) entries.")

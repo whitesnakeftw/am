@@ -5,8 +5,7 @@ import base64
 import html
 import traceback
 from datetime import datetime
-from urllib.parse import unquote
-from utils import hex_to_oct_keys, USER_AGENT
+from utils import hex_to_oct_keys, base64decode, USER_AGENT
 
 BASE_URL_B64 = 'aHR0cHM6Ly90aGl' + 'zbm90LmJ1c2luZXNz'
 BASE_URL = base64.b64decode(BASE_URL_B64).decode("utf-8")
@@ -58,15 +57,15 @@ def parseEventUrl(url: str, session: requests.Session) -> tuple[str, str, dict]:
         if matches:
             mpd_url = matches[1]
             if matches[2]:
-                base64key = matches[2].replace('%3D', '=')
-                keys = base64.b64decode(base64key + '=' * (-len(base64key) % 4)).decode('utf-8').replace(';', ',')
+                base64key = matches[2]
+                keys = base64decode(base64key).replace(';', ',')
                 keys = unpackKeys(keys)
                 if ',' in keys:
                     keys = hex_to_oct_keys(keys)
             else:
                 base64key = None
             if matches[3]:
-                headers_dict = json.loads(base64.b64decode(unquote(matches[3]) + '=' * (-len(unquote(matches[3])) % 4)).decode('utf-8'))
+                headers_dict = json.loads(base64decode(matches[3]))
             else:
                 headers_dict = None
             return mpd_url, keys, headers_dict
