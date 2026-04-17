@@ -56,7 +56,7 @@ def getTnChannels() -> tuple[str, int]:
 
 
 def getSportzxChannels() -> tuple[str, int]:
-    client = SportzxClient(excluded_categories=["adult", "test", "xxx", "cricket", "icc "])
+    client = SportzxClient(excluded_categories=["adult", "test", "xxx", "cricket", "icc ", "isl", "psl", "indian pr", "f1", "motogp", "wwe"])
     channels_dict = client.get_channels()
     if channels_dict:
         channels, n = client.generate_m3u(channels=channels_dict, filename="", generic_logo="")

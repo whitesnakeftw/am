@@ -2,7 +2,7 @@ import base64
 import re
 from datetime import datetime, timezone
 
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36'
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 
 
@@ -66,7 +66,7 @@ def extract_expiration(input: str):
         token = match_jwt[0]
         expiration = jwt.decode(token, options={"verify_signature": False}).get('exp')
     else:
-        match_expiration = re.search(r'(?:\bexp%3D|\btend%3A|_e~)([^~_]+)', input)
+        match_expiration = re.search(r'(?<!\d)(17\d{8})(?!\d)', input)
         if match_expiration:
             expiration = int(match_expiration[1])
     if expiration:

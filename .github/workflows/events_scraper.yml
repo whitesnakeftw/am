@@ -42,7 +42,7 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           python -m pip install --upgrade pip
-          pip install requests pycryptodome pyjwt
+          pip install requests pycryptodome pyjwt python-dotenv
 
       - name: Run events scraper
         env:
