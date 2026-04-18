@@ -5,7 +5,7 @@ import base64
 import re
 import json
 import traceback
-from utils import extract_expiration, base64decode, USER_AGENT, TIME_RE
+from utils import base64decode, USER_AGENT, TIME_RE
 from tn import unpackKeys
 
 load_dotenv()
@@ -61,7 +61,6 @@ def get_channels(response: str) -> list[dict]:
         try:  # Case DAZN
             manifest, kid_key_pair_b64, headers = re.search(r'(.+?)[\?&]ck=(.+?)&headers=(.+)', stream_info).groups()
             item["headers"] = json.loads(base64decode(headers))
-            item["expiration"] = extract_expiration(item["headers"]["dazn-token"])
         except AttributeError:
             try:  # Case Now/Wow
                 manifest, kid_key_pair_b64 = re.search(r'(.+?)[\?&]ck=(.+)', stream_info).groups()
@@ -70,11 +69,6 @@ def get_channels(response: str) -> list[dict]:
         kid_key_pair = base64decode(kid_key_pair_b64)
         item["manifest_url"] = manifest
         item["kid_key_pair"] = unpackKeys(kid_key_pair)
-        if not item.get("expiration"):
-            try:
-                item["expiration"] = extract_expiration(item["s"])
-            except TypeError:
-                pass
         del item["p"]
         del item["s"]
         valid_channels.append(item)

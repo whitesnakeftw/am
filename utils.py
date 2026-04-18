@@ -72,7 +72,7 @@ def extract_expiration(input: str):
         token = match_jwt[0]
         expiration = jwt.decode(token, options={"verify_signature": False}).get('exp')
     else:
-        match_expiration = re.search(r'(?<!\d)(17\d{8})(?!\d)', input)
+        match_expiration = re.search(r'(?<!\d)(?<!st%3D)(17\d{8})(?!\d)', input)
         if match_expiration:
             expiration = int(match_expiration[1])
     if expiration:
