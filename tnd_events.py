@@ -86,22 +86,20 @@ def get_events(response: str) -> list[dict]:
         if current_day not in normalize(date.lower()):
             break
         time_comp = meta.select_one(".ev-ora").get_text(strip=True)
+        time = TIME_RE.search(time_comp)[0]
         title = card.select_one(".ev-title").get_text(strip=True)
         channels_block = card.select_one(".ev-channels")
-        category_line = channels_block.get_text("\n", strip=True).split("\n")[1]
-        # cat = None
-        ch = None
-        if "Categoria:" in category_line:
-            parts = category_line.replace("Categoria:", "").split("- Canale:")
-            # cat = parts[0].strip()
-            ch = parts[1].strip().rsplit(" (", 1)[0] if len(parts) > 1 else None
-            time = TIME_RE.search(time_comp)[0]
-        events.append({
-            "title": f'[TNd] {time} {title} [{ch}]',
-            "channel": ch,
-            # "date": date,
-            # "category": cat,
-        })
+        lines = [line.strip() for line in channels_block.get_text("\n", strip=True).split("\n") if 'Categoria:' in line]
+        for line in lines:
+            _, rest = line.split("Categoria:")
+            cat, ch = rest.split("- Canale:")
+            ch = ch.strip().rsplit(" (", 1)[0]
+            events.append({
+                "title": f"[TNd] {time} {title} [{ch}]",
+                "channel": ch,
+                # "date": date,
+                # "category": cat,
+            })
     return events
 
 
