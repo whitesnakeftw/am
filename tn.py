@@ -82,8 +82,8 @@ def getCurrentDayIT():
 
 def getTnEventsDict() -> list[dict]:
     parsed_items = []
-    sesh = siteLogin(BASE_URL, '2025')
     try:
+        sesh = siteLogin(BASE_URL, '2025')
         response = sesh.get(f'{BASE_URL}/api/eventi.json', headers=headers)
         events_dict = response.json()
         current_day = getCurrentDayIT()

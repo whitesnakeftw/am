@@ -4,6 +4,7 @@ import requests
 import base64
 import re
 import json
+import traceback
 from utils import extract_expiration, base64decode, USER_AGENT, TIME_RE
 from tn import unpackKeys
 
@@ -34,7 +35,12 @@ def getCurrentDayIT() -> str:
 
 
 def get_channels(response: str) -> list[dict]:
-    channel_data = re.search(r'const\s*(?:_0xD|\bd)ata\s*=\s*(.+?);', response).group(1)
+    try:
+        channel_data = re.search(r'const\s*(?:_0xD|\bd)ata\s*=\s*(.+?);', response).group(1)
+    except AttributeError as e:
+        print(f'(tnd) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
+        traceback.print_exc()
+        return []
     channel_data_dict = json.loads(channel_data)
     matches = re.findall(r'data-l="([^"]+)"\s*data-id="([^"]+)"\s*data-name="([^"]+)"', response)
     matches_dict = {match[1]: {"name": match[2], "category": match[0]} for match in matches}
@@ -44,8 +50,8 @@ def get_channels(response: str) -> list[dict]:
             continue
         channel_info = matches_dict[channel_id]
         channel_data_list.append({
-            "title": channel_info["name"],
-            # "category": channel_info["category"],
+            "ch_title": channel_info["name"],
+            "ch_category": channel_info["category"],
             **data,
         })
 
@@ -96,24 +102,32 @@ def get_events(response: str) -> list[dict]:
             ch = ch.strip().rsplit(" (", 1)[0]
             events.append({
                 "title": f"[TNd] {time} {title} [{ch}]",
-                "channel": ch,
+                "ev_channel": ch.strip(),
+                "ev_category": cat.strip(),
                 # "date": date,
-                # "category": cat,
             })
     return events
 
 
 def getTndEventsDict() -> list[dict]:
-    response = requests.get(url, headers=HEADERS).text
+    try:
+        response = requests.get(url, headers=HEADERS).text
+    except Exception as e:
+        print(f'(tnd) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
+        traceback.print_exc()
+        return [], 0
     events = get_events(response)
     channels = get_channels(response)
     result = []
     for event in events:
-        key = normalize(event["channel"])
-        channel = next((c for c in channels if normalize(c["title"]) == key), None)
+        key = normalize(f'{event["ev_channel"]}-{event["ev_category"]}')
+        channel = next((ch for ch in channels if normalize(f'{ch["ch_title"]}-{ch["ch_category"]}') == key), None)
         if channel:
             merged = {**channel, **event}
-            del merged["channel"]
+            del merged["ev_channel"]
+            del merged["ev_category"]
+            del merged["ch_title"]
+            del merged["ch_category"]
             result.append(merged)
     return result, len(result)
 
