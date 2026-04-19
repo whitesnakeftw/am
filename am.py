@@ -46,13 +46,13 @@ def fix_time(title_with_time: str) -> str:
 
     try:
         hours, minutes = map(int, TIME_RE.search(title_with_time).groups())
-        if _is_dst():
-            hours += 1
+        # if _is_dst():
+        #     hours += 1
         time_str = f'{hours:02d}:{minutes:02d}'
         if time_str in TIMES_DICT.keys():
             hours, minutes = map(int, TIMES_DICT[time_str].split(':'))
-        else:
-            hours += 1
+        # else:
+        #     hours += 1
     except AttributeError:
         return title_with_time
     return TIME_RE.sub(f'{hours:02d}:{minutes:02d}', title_with_time)
