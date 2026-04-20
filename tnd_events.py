@@ -84,7 +84,7 @@ def get_events(response: str) -> list[dict]:
         meta = card.select_one(".ev-meta")
         date = meta.find_all("span")[1].get_text(strip=True)
         if current_day not in normalize(date.lower()):
-            break
+            continue
         time_comp = meta.select_one(".ev-ora").get_text(strip=True)
         time = TIME_RE.search(time_comp)[0]
         title = card.select_one(".ev-title").get_text(strip=True)
