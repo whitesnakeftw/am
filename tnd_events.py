@@ -28,10 +28,10 @@ def normalize(text: str) -> str:
     return re.sub(r"[^a-z0-9\+]", "", text.lower())
 
 
-def getCurrentDayIT() -> str:
+def getCurrentDayIT(next: int = 0) -> str:
     from datetime import datetime
     days = {0: "lunedì", 1: "martedì", 2: "mercoledì", 3: "giovedì", 4: "venerdì", 5: "sabato", 6: "domenica"}
-    return normalize(days[datetime.now().weekday()])
+    return normalize(days[datetime.now().weekday() + next])
 
 
 def get_channels(response: str) -> list[dict]:
@@ -79,14 +79,20 @@ def get_events(response: str) -> list[dict]:
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(response, "html.parser")
     events = []
-    current_day = getCurrentDayIT()
+    current_day, next_day = getCurrentDayIT(), getCurrentDayIT(next=1)
     for card in soup.select(".event-card"):
         meta = card.select_one(".ev-meta")
         date = meta.find_all("span")[1].get_text(strip=True)
-        if current_day not in normalize(date.lower()):
-            continue
         time_comp = meta.select_one(".ev-ora").get_text(strip=True)
         time = TIME_RE.search(time_comp)[0]
+
+        # Skip event if it's not today, or tomorrow until 11:30am
+        if all(normalize(x) not in normalize(date.lower()) for x in (current_day, next_day)):
+            continue
+        elif normalize(next_day) in normalize(date.lower()):
+            if time > "11:30":
+                continue
+
         title = card.select_one(".ev-title").get_text(strip=True)
         channels_block = card.select_one(".ev-channels")
         lines = [line.strip() for line in channels_block.get_text("\n", strip=True).split("\n") if 'Categoria:' in line]
@@ -118,10 +124,8 @@ def getTndEventsDict() -> list[dict]:
         channel = next((ch for ch in channels if normalize(f'{ch["ch_title"]}-{ch["ch_category"]}') == key), None)
         if channel:
             merged = {**channel, **event}
-            del merged["ev_channel"]
-            del merged["ev_category"]
-            del merged["ch_title"]
-            del merged["ch_category"]
+            for k in ["ev_channel", "ev_category", "ch_title", "ch_category"]:
+                del merged[k]
             result.append(merged)
     return result, len(result)
 
