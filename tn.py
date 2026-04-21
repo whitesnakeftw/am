@@ -5,7 +5,7 @@ import base64
 import html
 import traceback
 from datetime import datetime
-from utils import hex_to_oct_keys, base64decode, USER_AGENT
+from utils import hex_to_oct_keys, base64decode, unpackKeys, USER_AGENT
 
 BASE_URL_B64 = 'aHR0cHM6Ly90aGl' + 'zbm90LmJ1c2luZXNz'
 BASE_URL = base64.b64decode(BASE_URL_B64).decode("utf-8")
@@ -30,14 +30,6 @@ def siteLogin(url, password):
     except Exception as e:
         print(f'Login error: {e}')
         return None
-
-
-def unpackKeys(keys: str) -> str:
-    try:
-        keys = ','.join(f'{kid}:{key}' for kid, key in json.loads(keys).items())
-    except json.JSONDecodeError:
-        pass
-    return keys
 
 
 def parseEventUrl(url: str, session: requests.Session) -> tuple[str, str, dict]:

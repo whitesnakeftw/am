@@ -19,6 +19,7 @@ twitch_profiles = [
     "https://www.twitch.tv/tylenul",
     "https://www.twitch.tv/none_cerbero_podcast",
     "https://www.twitch.tv/grenbaud",
+    "https://www.twitch.tv/davidrubino",
     "https://www.twitch.tv/ilgabbrone",
     "https://www.twitch.tv/lollolacustre",
     "https://www.twitch.tv/gioee",

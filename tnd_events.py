@@ -1,12 +1,11 @@
-from dotenv import load_dotenv
 import os
 import requests
 import base64
 import re
 import json
 import traceback
-from utils import base64decode, USER_AGENT, TIME_RE
-from tn import unpackKeys
+from utils import base64decode, unpackKeys, USER_AGENT, TIME_RE
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -86,9 +85,12 @@ def get_events(response: str) -> list[dict]:
         time_comp = meta.select_one(".ev-ora").get_text(strip=True)
         time = TIME_RE.search(time_comp)[0]
 
-        # Skip event if it's not today, or tomorrow until 11:30am
+        # Skip event if it's not today after 06:00am, or tomorrow until 11:30am
         if all(normalize(x) not in normalize(date.lower()) for x in (current_day, next_day)):
             continue
+        elif normalize(current_day) in normalize(date.lower()):
+            if time < "06:00":
+                continue
         elif normalize(next_day) in normalize(date.lower()):
             if time > "11:30":
                 continue

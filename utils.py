@@ -20,6 +20,15 @@ def extract_time(s: str) -> int:
     return int(hh) * 60 + int(mm)
 
 
+def unpackKeys(keys: str) -> str:
+    import json
+    try:
+        keys = ','.join(f'{kid}:{key}' for kid, key in json.loads(keys).items())
+    except json.JSONDecodeError:
+        pass
+    return keys
+
+
 def hex_to_oct_keys(hex_string: str) -> str:
     def _hex_to_base64url(hex_str: str) -> str:
         decoded_bytes = bytes.fromhex(hex_str)  # Convert hex string to bytes
