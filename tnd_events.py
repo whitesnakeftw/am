@@ -4,7 +4,9 @@ import base64
 import re
 import json
 import traceback
-from utils import base64decode, unpackKeys, USER_AGENT, TIME_RE
+import asyncio
+from playwright.async_api import async_playwright
+from utils import base64decode, unpackKeys, getCurrentDayIT, USER_AGENT, TIME_RE
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,10 +29,21 @@ def normalize(text: str) -> str:
     return re.sub(r"[^a-z0-9\+]", "", text.lower())
 
 
-def getCurrentDayIT(next: int = 0) -> str:
-    from datetime import datetime
-    days = {0: "lunedì", 1: "martedì", 2: "mercoledì", 3: "giovedì", 4: "venerdì", 5: "sabato", 6: "domenica"}
-    return normalize(days[datetime.now().weekday() + next])
+async def get_response():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, channel="chromium")
+        context = await browser.new_context(
+            user_agent=USER_AGENT,
+            extra_http_headers=HEADERS,
+            viewport={"width": 1280, "height": 800},
+        )
+        page = await context.new_page()
+        await page.goto(url)
+        await page.wait_for_load_state("networkidle")
+        await page.wait_for_timeout(6000)
+        response = await page.content()
+        await browser.close()
+        return response
 
 
 def get_channels(response: str) -> list[dict]:
@@ -78,7 +91,7 @@ def get_events(response: str) -> list[dict]:
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(response, "html.parser")
     events = []
-    current_day, next_day = getCurrentDayIT(), getCurrentDayIT(next=1)
+    current_day, next_day = normalize(getCurrentDayIT()), normalize(getCurrentDayIT(next=1))
     for card in soup.select(".event-card"):
         meta = card.select_one(".ev-meta")
         date = meta.find_all("span")[1].get_text(strip=True)
@@ -86,12 +99,13 @@ def get_events(response: str) -> list[dict]:
         time = TIME_RE.search(time_comp)[0]
 
         # Skip event if it's not today after 06:00am, or tomorrow until 11:30am
-        if all(normalize(x) not in normalize(date.lower()) for x in (current_day, next_day)):
+        n_date = normalize(date.lower())
+        if all(normalize(x) not in n_date for x in (current_day, next_day)):
             continue
-        elif normalize(current_day) in normalize(date.lower()):
+        elif current_day in n_date:
             if time < "06:00":
                 continue
-        elif normalize(next_day) in normalize(date.lower()):
+        elif next_day in n_date:
             if time > "11:30":
                 continue
 
@@ -113,7 +127,8 @@ def get_events(response: str) -> list[dict]:
 
 def getTndEventsDict() -> list[dict]:
     try:
-        response = requests.get(url, headers=HEADERS).text
+        # response = requests.get(url, headers=HEADERS).text
+        response = asyncio.run(get_response())
     except Exception as e:
         print(f'(tnd) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         traceback.print_exc()

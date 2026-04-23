@@ -12,11 +12,14 @@ OUTFILE = "last_minute.m3u8"
 def create_m3u_entry(item: dict) -> str:
     if isinstance(item.get("headers"), dict):
         item["headers"] = '|'.join(f'{k}={v}' for k, v in item["headers"].items())
-    item["title"] = item["title"].replace(':', '\N{MODIFIER LETTER COLON}')
-    item["title"] = re.sub(r' {2,}', " ", item["title"])
+    title = item["title"].replace(':', '\N{MODIFIER LETTER COLON}')
+    title = re.sub(r' {2,}', " ", title)
+    tvg_id = f' tvg-id="{item.get("tvg_id", "")}"' if item.get("tvg_id") else ''
+    logo = f' tvg-logo="{item.get("logo", "")}"' if item.get("logo") else ''
+    category = f' group-title="{item.get("category", "ULTIMO MINUTO")}"'
     expiration = extract_expiration(item.get("manifest_url", "") + item.get("headers", ""))
 
-    entry = f'#EXTINF:-1 group-title="ULTIMO MINUTO",{item["title"]}'
+    entry = f'#EXTINF:-1{category}{tvg_id}{logo},{title}'
     if item.get("headers"):
         entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers'].replace('|', '&')}"
     if item.get("kid_key_pair"):
@@ -73,12 +76,13 @@ def getSportzxChannels() -> tuple[str, int]:
     return channels, n
 
 
-am_channels, n_am = getAmChannels()
-xe_channels, n_xe = getXeChannels()
-tn_channels, n_tn = getTnChannels()
-tnd_channels, n_tnd = getTndChannels()
-sportzx_channels, n_sportzx = getSportzxChannels()
+if __name__ == "__main__":
+    am_channels, n_am = getAmChannels()
+    xe_channels, n_xe = getXeChannels()
+    # tn_channels, n_tn = getTnChannels()
+    tnd_channels, n_tnd = getTndChannels()
+    sportzx_channels, n_sportzx = getSportzxChannels()
 
-with open(OUTFILE, 'w', encoding='utf-8') as f:
-    f.write("#EXTM3U\n\n" + am_channels + xe_channels + tn_channels + tnd_channels + sportzx_channels)
-print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_xe}(xe) + {n_tn}(tn) + {n_tnd}(tnd) + {n_sportzx}(sportzx) entries.")
+    with open(OUTFILE, 'w', encoding='utf-8') as f:
+        f.write("#EXTM3U\n\n" + am_channels + xe_channels + tnd_channels + sportzx_channels)
+    print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_xe}(xe) + {n_tnd}(tnd) + {n_sportzx}(sportzx) entries.")

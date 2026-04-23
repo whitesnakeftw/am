@@ -2,7 +2,7 @@ import base64
 import re
 from datetime import datetime, timezone
 
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 
 
@@ -18,6 +18,13 @@ def extract_time(s: str) -> int:
         return 0  # float("inf")
     hh, mm = match.groups()
     return int(hh) * 60 + int(mm)
+
+
+def getCurrentDayIT(next: int = 0) -> str:
+    days = {
+        0: "lunedì", 1: "martedì", 2: "mercoledì", 3: "giovedì", 4: "venerdì", 5: "sabato", 6: "domenica"
+    }
+    return days[datetime.now().weekday() + next]
 
 
 def unpackKeys(keys: str) -> str:

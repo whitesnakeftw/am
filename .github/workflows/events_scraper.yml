@@ -29,6 +29,12 @@ jobs:
         with:
           python-version: '3.10'
       
+      - name: Cache PW browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright
+
       - name: Cache venv
         id: cache-venv
         uses: actions/cache@v4
@@ -42,7 +48,8 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           python -m pip install --upgrade pip
-          pip install requests pycryptodome pyjwt python-dotenv beautifulsoup4
+          pip install requests pycryptodome pyjwt python-dotenv beautifulsoup4 playwright
+          playwright install chromium
 
       - name: Run events scraper
         env:

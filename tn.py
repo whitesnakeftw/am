@@ -4,8 +4,7 @@ import json
 import base64
 import html
 import traceback
-from datetime import datetime
-from utils import hex_to_oct_keys, base64decode, unpackKeys, USER_AGENT
+from utils import hex_to_oct_keys, base64decode, unpackKeys, getCurrentDayIT, USER_AGENT
 
 BASE_URL_B64 = 'aHR0cHM6Ly90aGl' + 'zbm90LmJ1c2luZXNz'
 BASE_URL = base64.b64decode(BASE_URL_B64).decode("utf-8")
@@ -65,11 +64,6 @@ def parseEventUrl(url: str, session: requests.Session) -> tuple[str, str, dict]:
         print(f'(tn) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         traceback.print_exc()
         return None, None, None
-
-
-def getCurrentDayIT():
-    days = {0: "lunedì", 1: "martedì", 2: "mercoledì", 3: "giovedì", 4: "venerdì", 5: "sabato", 6: "domenica"}
-    return days[datetime.now().weekday()]
 
 
 def getTnEventsDict() -> list[dict]:
