@@ -6,7 +6,7 @@ import json
 import traceback
 import asyncio
 from playwright.async_api import async_playwright
-from utils import base64decode, unpackKeys, getCurrentDayIT, USER_AGENT, TIME_RE
+from utils import base64decode, unpackKeys, hex_to_oct_keys, getCurrentDayIT, USER_AGENT, TIME_RE
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,7 +21,6 @@ HEADERS = {
     'pragma': 'no-cache',
     'priority': 'u=0, i',
     'upgrade-insecure-requests': '1',
-    'user-agent': USER_AGENT,
 }
 
 
@@ -33,9 +32,8 @@ async def get_response():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, channel="chromium")
         context = await browser.new_context(
-            user_agent=USER_AGENT,
             extra_http_headers=HEADERS,
-            viewport={"width": 1280, "height": 800},
+            viewport={"width": 1920, "height": 879},
         )
         page = await context.new_page()
         await page.goto(url)
@@ -48,7 +46,7 @@ async def get_response():
 
 def get_channels(response: str) -> list[dict]:
     try:
-        channel_data = re.search(r'const\s*(?:_0xD|\bd)ata\s*=\s*(.+?);', response).group(1)
+        channel_data = re.search(r'const\s*(?:_0xD|\bd)ata\s*=\s*(.+?);', response, re.DOTALL).group(1)
     except AttributeError as e:
         print(f'(tnd) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         traceback.print_exc()
@@ -62,8 +60,8 @@ def get_channels(response: str) -> list[dict]:
             continue
         channel_info = matches_dict[channel_id]
         channel_data_list.append({
+            "ch_id": channel_id,
             "ch_title": channel_info["name"],
-            "ch_category": channel_info["category"],
             **data,
         })
 
@@ -78,9 +76,9 @@ def get_channels(response: str) -> list[dict]:
                 manifest, kid_key_pair_b64 = re.search(r'(.+?)[\?&]ck=(.+)', stream_info).groups()
             except AttributeError:
                 continue
-        kid_key_pair = base64decode(kid_key_pair_b64)
+        kid_key_pair = unpackKeys(base64decode(kid_key_pair_b64))
         item["manifest_url"] = manifest
-        item["kid_key_pair"] = unpackKeys(kid_key_pair)
+        item["kid_key_pair"] = hex_to_oct_keys(kid_key_pair) if ',' in kid_key_pair else kid_key_pair
         del item["p"]
         del item["s"]
         valid_channels.append(item)
@@ -110,17 +108,14 @@ def get_events(response: str) -> list[dict]:
                 continue
 
         title = card.select_one(".ev-title").get_text(strip=True)
-        channels_block = card.select_one(".ev-channels")
-        lines = [line.strip() for line in channels_block.get_text("\n", strip=True).split("\n") if 'Categoria:' in line]
-        for line in lines:
-            _, rest = line.split("Categoria:")
-            cat, ch = rest.split("- Canale:")
-            ch = ch.strip().rsplit(" (", 1)[0]
+        channels_block = card.select_one(".ev-channels-list")
+
+        for ch_tag in channels_block.select(".agenda-link"):
+            ch_name = ch_tag.get_text(strip=True).rsplit(" [", 1)[0]
+            ch_id = ch_tag.get("onclick", "").split("'")[1]
             events.append({
-                "title": f"[TNd] {time} {title} [{ch}]",
-                "ev_channel": ch.strip(),
-                "ev_category": cat.strip(),
-                # "date": date,
+                "title": f"[TNd] {time} {title} [{ch_name}]",
+                "ev_ch_id": ch_id,
             })
     return events
 
@@ -137,11 +132,10 @@ def getTndEventsDict() -> list[dict]:
     channels = get_channels(response)
     result = []
     for event in events:
-        key = normalize(f'{event["ev_channel"]}-{event["ev_category"]}')
-        channel = next((ch for ch in channels if normalize(f'{ch["ch_title"]}-{ch["ch_category"]}') == key), None)
+        channel = next((ch for ch in channels if ch["ch_id"] == event["ev_ch_id"]), None)
         if channel:
             merged = {**channel, **event}
-            for k in ["ev_channel", "ev_category", "ch_title", "ch_category"]:
+            for k in ["ch_id", "ch_title", "ev_ch_id"]:
                 del merged[k]
             result.append(merged)
     return result, len(result)
@@ -150,4 +144,4 @@ def getTndEventsDict() -> list[dict]:
 if __name__ == "__main__":
     events_dict, n = getTndEventsDict()
     print(json.dumps(events_dict, indent=4))
-    print(f"✅ Found {n} channels from TNd.")
+    print(f"✅ Found {n} events from TNd.")
