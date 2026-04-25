@@ -30,14 +30,14 @@ def normalize(text: str) -> str:
 
 async def get_response():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, channel="chromium")
+        browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
+            user_agent=USER_AGENT,
             extra_http_headers=HEADERS,
             viewport={"width": 1920, "height": 879},
         )
         page = await context.new_page()
-        await page.goto(url)
-        await page.wait_for_load_state("networkidle")
+        await page.goto(url, wait_until="load")
         await page.wait_for_timeout(6000)
         response = await page.content()
         await browser.close()
