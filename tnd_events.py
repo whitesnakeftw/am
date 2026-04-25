@@ -1,10 +1,8 @@
 import os
-import requests
 import base64
 import re
 import json
 import traceback
-import asyncio
 from playwright.async_api import async_playwright
 from utils import base64decode, unpackKeys, hex_to_oct_keys, getCurrentDayIT, USER_AGENT, TIME_RE
 from dotenv import load_dotenv
@@ -16,32 +14,12 @@ user = os.getenv("USER")
 password = os.getenv("PASSWORD")
 
 HEADERS = {
-    'authorization': f'Basic {base64.b64encode(f"{user}:{password}".encode()).decode()}',
-    'cache-control': 'no-cache',
-    'pragma': 'no-cache',
-    'priority': 'u=0, i',
-    'upgrade-insecure-requests': '1',
+    'authorization': f'Basic {base64.b64encode(f"{user}:{password}".encode()).decode()}'
 }
 
 
 def normalize(text: str) -> str:
     return re.sub(r"[^a-z0-9\+]", "", text.lower())
-
-
-async def get_response():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(
-            user_agent=USER_AGENT,
-            extra_http_headers=HEADERS,
-            viewport={"width": 1920, "height": 879},
-        )
-        page = await context.new_page()
-        await page.goto(url, wait_until="load")
-        await page.wait_for_timeout(6000)
-        response = await page.content()
-        await browser.close()
-        return response
 
 
 def get_channels(response: str) -> list[dict]:
@@ -121,9 +99,9 @@ def get_events(response: str) -> list[dict]:
 
 
 def getTndEventsDict() -> list[dict]:
+    import curl_cffi
     try:
-        # response = requests.get(url, headers=HEADERS).text
-        response = asyncio.run(get_response())
+        response = curl_cffi.get(url, headers=HEADERS, impersonate="chrome146").text
     except Exception as e:
         print(f'(tnd) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         traceback.print_exc()
