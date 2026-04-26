@@ -14,6 +14,7 @@ twitch_profiles = [
     "https://www.twitch.tv/ishowspeed",
     "https://www.twitch.tv/kingsleague",
     "https://www.twitch.tv/kingsleague_it",
+    "https://www.twitch.tv/vivaelfutbolreal",
     "https://www.twitch.tv/halo",
     "https://www.twitch.tv/naded",
     "https://www.twitch.tv/tylenul",
@@ -30,6 +31,7 @@ twitch_profiles = [
     "https://www.twitch.tv/matteohs",
     "https://www.twitch.tv/marcomerrino",
     "https://www.twitch.tv/andreadel1988",
+    "https://www.twitch.tv/lucakingm",
     "https://www.twitch.tv/patrizio_official",
 ]
 

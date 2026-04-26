@@ -24,7 +24,7 @@ def getCurrentDayIT(next: int = 0) -> str:
     days = {
         0: "lunedì", 1: "martedì", 2: "mercoledì", 3: "giovedì", 4: "venerdì", 5: "sabato", 6: "domenica"
     }
-    return days[datetime.now().weekday() + next]
+    return days[(datetime.now().weekday() + next) % 7]
 
 
 def unpackKeys(keys: str) -> str:

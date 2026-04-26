@@ -2,9 +2,10 @@ import os
 import base64
 import re
 import json
+import curl_cffi
 import traceback
-from playwright.async_api import async_playwright
-from utils import base64decode, unpackKeys, hex_to_oct_keys, getCurrentDayIT, USER_AGENT, TIME_RE
+from bs4 import BeautifulSoup
+from utils import base64decode, unpackKeys, hex_to_oct_keys, getCurrentDayIT, TIME_RE
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -40,17 +41,18 @@ def get_channels(response: str) -> list[dict]:
         channel_data_list.append({
             "ch_id": channel_id,
             "ch_title": channel_info["name"],
+            "ch_category": channel_info["category"],
             **data,
         })
 
     valid_channels = []
     for item in channel_data_list:
         stream_info = base64decode(item["p"])
-        try:  # Case DAZN
+        try:  # Case with headers
             manifest, kid_key_pair_b64, headers = re.search(r'(.+?)[\?&]ck=(.+?)&headers=(.+)', stream_info).groups()
             item["headers"] = json.loads(base64decode(headers))
         except AttributeError:
-            try:  # Case Now/Wow
+            try:  # Case with just keys
                 manifest, kid_key_pair_b64 = re.search(r'(.+?)[\?&]ck=(.+)', stream_info).groups()
             except AttributeError:
                 continue
@@ -64,11 +66,11 @@ def get_channels(response: str) -> list[dict]:
 
 
 def get_events(response: str) -> list[dict]:
-    from bs4 import BeautifulSoup
     soup = BeautifulSoup(response, "html.parser")
     events = []
     current_day, next_day = normalize(getCurrentDayIT()), normalize(getCurrentDayIT(next=1))
     for card in soup.select(".event-card"):
+        card: BeautifulSoup
         meta = card.select_one(".ev-meta")
         date = meta.find_all("span")[1].get_text(strip=True)
         time_comp = meta.select_one(".ev-ora").get_text(strip=True)
@@ -87,8 +89,8 @@ def get_events(response: str) -> list[dict]:
 
         title = card.select_one(".ev-title").get_text(strip=True)
         channels_block = card.select_one(".ev-channels-list")
-
         for ch_tag in channels_block.select(".agenda-link"):
+            ch_tag: BeautifulSoup
             ch_name = ch_tag.get_text(strip=True).rsplit(" [", 1)[0]
             ch_id = ch_tag.get("onclick", "").split("'")[1]
             events.append({
@@ -99,7 +101,6 @@ def get_events(response: str) -> list[dict]:
 
 
 def getTndEventsDict() -> list[dict]:
-    import curl_cffi
     try:
         response = curl_cffi.get(url, headers=HEADERS, impersonate="chrome146").text
     except Exception as e:
