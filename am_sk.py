@@ -2,11 +2,8 @@ import base64
 import json
 import re
 import requests
-from utils import extract_expiration
+from events import create_m3u8_playlist
 
-# ==============================
-# CONFIG
-# ==============================
 DEBUG = False
 
 OUTFILE = "sky.m3u8"
@@ -19,10 +16,6 @@ VERSION = "2.0.0"
 MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
 SECRET = "my_secret_key"
 
-
-# ==============================
-# DATABASE CANALI
-# ==============================
 CHANNELS_DB = {
     "dazn": {"nome": "DAZN 1", "logo": "https://github.com/tv-logo/tv-logos/blob/main/countries/belgium/dazn-1-be.png?raw=true", "group": "Sky Sport"},
     "sport24": {"nome": "Sky Sport 24", "logo": "https://pixel.disco.nowtv.it/logo/skychb_35_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Sport"},
@@ -81,9 +74,6 @@ CHANNELS_DB = {
 }
 
 
-# ==============================
-# UTILS
-# ==============================
 def clean_m3u_text(text):
     if not text:
         return text
@@ -105,38 +95,30 @@ def match_channel(title):
     return None
 
 
-# ==============================
-# RESOLVE CHANNEL
-# ==============================
 def resolve_channel(channel_id):
     res = requests.get(f'https://test34344.herokuapp.com/filter.php?numTest=A1A159&id={channel_id}', headers={"User-Agent": MK_USER_AGENT})
-    base64_data = res.json()["data"]
+    try:
+        base64_data = res.json()["data"]
+    except KeyError:
+        return None
     data = base64.b64decode(base64_data)
     key_bytes = SECRET.encode()
-
     out = bytearray()
     for i in range(len(data)):
         out.append(data[i] ^ key_bytes[i % len(key_bytes)])
-
     return out.decode("utf-8")
 
 
-# ==============================
-# DECODE AMSTAFF
-# ==============================
 def decode_amstaff(encoded):
     if '@@' in encoded:
         ch_id = encoded.split('@@')[-1].strip()
         channel_resolved = resolve_channel(ch_id)
-        dict = json.loads(channel_resolved)
-        return dict["manifest"], dict["kid"], dict["key"]
-    else:
-        return None, None, None
+        if channel_resolved:
+            dict = json.loads(channel_resolved)
+            return dict["manifest"], dict["kid"], dict["key"]
+    return None, None, None
 
 
-# ==============================
-# FETCH (FIX JSON)
-# ==============================
 def extract_with_regex(text):
     results = []
     pattern = re.compile(
@@ -195,88 +177,37 @@ def fetch_amstaff_channels():
     return found
 
 
-# ==============================
-# M3U
-# ==============================
-def generate_m3u(channels):
-    m3u = f'#EXTM3U url-tvg="{TVG_URL}"\n\n'
-    n_channels = 0
-
-    # Helper to process a single (title, encoded, thumbnail) entry and append it to m3u
-    def _process_item(raw_title, encoded_item, thumbnail=""):
+def get_channels_list(channels: list[tuple[str, str, str]]) -> list[dict]:
+    channel_order = {meta["nome"]: idx for idx, meta in enumerate(CHANNELS_DB.values())}  # Precompute ordering map
+    entries = []
+    for raw_title, ch_id, logo in channels:
         title = clean_m3u_text(raw_title)
-
-        decoded = decode_amstaff(encoded_item)
-        if not decoded[0]:
-            print(f"⚠️ decode_amstaff failed for title={repr(title)}")
-            return False
-
-        url, key_id, key = decoded
+        url, key_id, key = decode_amstaff(ch_id)
+        if url is None:
+            print(f"⚠️ Decode failed for {ch_id}")
+            continue
         meta = match_channel(title)
-
-        name = clean_m3u_text(meta["nome"] if meta else title)
-        logo = meta["logo"] if meta else thumbnail
-        group = meta["group"] if meta else "Altro"
-        tvg_id = name.replace(" ", '') + '.it'
-        quality = "FHD" if ("CMAF_CTR_H" in url or "dazn" in url) else "SD"
-        expiration = extract_expiration(url)
-
-        nonlocal m3u
-        m3u += f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="{group} (Now) {quality}",{name} ({quality})\n'
-        m3u += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
-        m3u += f'#KODIPROP:inputstream.adaptive.license_key={key_id}:{key}\n'
-        if expiration:
-            m3u += f'# Expiration: {expiration}\n'
-        m3u += f'{url}\n\n'
-        nonlocal n_channels
-        n_channels += 1
-        return True
-
-    # Make a mutable copy of fetched channels. It will remove items as they are placed
-    remaining = list(channels)
-    # First, emit channels in the order defined by CHANNELS_DB. For each DB entry,
-    # find the first remaining fetched channel that matches it and output it
-    for db_key, db_meta in CHANNELS_DB.items():
-        found_index = None
-        # First try to find a matching FHD entry for this db_meta
-        for idx, (title, encoded, thumbnail) in enumerate(remaining):
-            matched = match_channel(title)
-            if matched is not db_meta:
-                continue
-            dec = decode_amstaff(encoded)
-            if dec[0]:
-                url = dec[0]
-                if "CMAF_CTR_H" in url or "dazn" in url:
-                    found_index = idx
-                    break
-            else:
-                url = ""
-
-        # If no FHD match found, fall back to the first matching entry (SD or unknown)
-        if found_index is None:
-            for idx, (title, encoded, thumbnail) in enumerate(remaining):
-                matched = match_channel(title)
-                if matched is db_meta:
-                    found_index = idx
-                    break
-
-        if found_index is not None:
-            title, encoded, thumbnail = remaining.pop(found_index)
-            _process_item(title, encoded, thumbnail)
-
-    # Append any remaining channels that weren't in CHANNELS_DB or didn't match
-    for title, encoded, thumbnail in remaining:
-        _process_item(title, encoded, thumbnail)
-
-    with open(OUTFILE, "w", encoding="utf-8") as f:
-        f.write(m3u)
-
-    print(f"✅ Playlist {OUTFILE} created with {n_channels} channels.")
+        entry = {
+            "title": meta["nome"],
+            "manifest_url": url,
+            "kid_key_pair": f"{key_id}:{key}",
+            "category": meta["group"] + ' (Am)',
+            "tvg_id": meta["nome"].replace(" ", '') + '.it',
+            "logo": meta.get("logo", logo),
+        }
+        entry["_order"] = channel_order.get(entry["title"], 9999)
+        entries.append(entry)
+    entries.sort(key=lambda e: e["_order"])
+    for e in entries:
+        del e["_order"]
+    return entries
 
 
-# ==============================
-# MAIN
-# ==============================
-if __name__ == "__main__":
-    channels = fetch_amstaff_channels()
-    generate_m3u(channels)
+if __name__ == '__main__':
+    channels_dict = get_channels_list(fetch_amstaff_channels())
+    print(channels_dict)
+    playlist = f'#EXTM3U url-tvg="{TVG_URL}"\n\n' + create_m3u8_playlist(channels_dict)
+    print(playlist)
+    with open(OUTFILE, 'w', encoding='utf-8') as f:
+        f.write(playlist)
+    print(f"✅ Playlist {OUTFILE} created with {len(channels_dict)} channels.")

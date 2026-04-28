@@ -15,6 +15,7 @@ HEADERS = {"User-Agent": MK_USER_AGENT}
 
 TIMES_DICT = {
     '10:56': '12:30',
+    '11:11': '12:30',
     '13:11': '15:00',
     '13:26': '15:00',
     '13:41': '15:00',
@@ -97,6 +98,7 @@ def clean_item(item: dict) -> dict:
 
     title = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
     title = re.sub(r' ?\([^)(]+\)', '', title)
+    # if not any(time in title for time in list(dict.fromkeys(TIMES_DICT.values()))):
     title = fix_time(title)
     if '.dazn.' in manifest_url:
         title += ' [DAZN]'

@@ -100,13 +100,17 @@ def get_events(response: str) -> list[dict]:
     return events
 
 
-def getTndEventsDict() -> list[dict]:
+def getTndResponse() -> str:
     try:
         response = curl_cffi.get(url, headers=HEADERS, impersonate="chrome146").text
+        return response
     except Exception as e:
         print(f'(tnd) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         traceback.print_exc()
-        return [], 0
+        return None
+
+
+def getTndEventsDict(response) -> list[dict]:
     events = get_events(response)
     channels = get_channels(response)
     result = []
@@ -114,13 +118,13 @@ def getTndEventsDict() -> list[dict]:
         channel = next((ch for ch in channels if ch["ch_id"] == event["ev_ch_id"]), None)
         if channel:
             merged = {**channel, **event}
-            for k in ["ch_id", "ch_title", "ev_ch_id"]:
+            for k in ["ch_id", "ch_title", "ch_category", "ev_ch_id"]:
                 del merged[k]
             result.append(merged)
     return result, len(result)
 
 
 if __name__ == "__main__":
-    events_dict, n = getTndEventsDict()
+    events_dict, n = getTndEventsDict(getTndResponse())
     print(json.dumps(events_dict, indent=4))
     print(f"✅ Found {n} events from TNd.")
