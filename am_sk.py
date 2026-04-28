@@ -205,9 +205,7 @@ def get_channels_list(channels: list[tuple[str, str, str]]) -> list[dict]:
 
 if __name__ == '__main__':
     channels_dict = get_channels_list(fetch_amstaff_channels())
-    print(channels_dict)
     playlist = f'#EXTM3U url-tvg="{TVG_URL}"\n\n' + create_m3u8_playlist(channels_dict)
-    print(playlist)
     with open(OUTFILE, 'w', encoding='utf-8') as f:
         f.write(playlist)
     print(f"✅ Playlist {OUTFILE} created with {len(channels_dict)} channels.")
