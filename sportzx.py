@@ -319,7 +319,7 @@ class SportzxClient:
             lines.append(ch.stream_url)
             lines.append("")
 
-        contenuto = "\n".join(lines).rstrip()
+        contenuto = "\n".join(lines).rstrip() + "\n\n"
 
         # try:
         #     with open(filename, "w", encoding="utf-8") as f:
