@@ -8,7 +8,7 @@ from utils import USER_AGENT
 OUTFILE = "twitch.m3u8"
 IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
 GROUP_TITLE = "TWITCH"
-MAX_RETRIES = 10
+MAX_RETRIES = 8
 
 twitch_profiles = [
     "https://www.twitch.tv/ishowspeed",
@@ -22,6 +22,7 @@ twitch_profiles = [
     "https://www.twitch.tv/grenbaud",
     "https://www.twitch.tv/davidrubino",
     "https://www.twitch.tv/ilgabbrone",
+    "https://www.twitch.tv/homyatol",
     "https://www.twitch.tv/lollolacustre",
     "https://www.twitch.tv/gioee",
     "https://www.twitch.tv/tumblurr",
@@ -29,7 +30,9 @@ twitch_profiles = [
     "https://www.twitch.tv/therealmarzaa",
     "https://www.twitch.tv/dariomocciatwitch",
     "https://www.twitch.tv/matteohs",
+    "https://www.twitch.tv/gskianto",
     "https://www.twitch.tv/marcomerrino",
+    "https://www.twitch.tv/enkk",
     "https://www.twitch.tv/andreadel1988",
     "https://www.twitch.tv/lucakingm",
     "https://www.twitch.tv/patrizio_official",

@@ -23,6 +23,15 @@ def normalize(text: str) -> str:
     return re.sub(r"[^a-z0-9\+]", "", text.lower())
 
 
+def clean_title(title: str) -> str:
+    if not any(tag in title.lower() for tag in ['[warp]', '[ch]']):
+        title = title.rsplit(" [", 1)[0]
+    title = re.sub(r'\[warp\]', '(WARP)', title, flags=re.IGNORECASE)
+    title = re.sub(r'dazn', 'DAZN', title, flags=re.IGNORECASE)
+    title = re.sub(r'(DAZN)\s\d?\s*\[(CH)\]', r'\1-\2', title)
+    return title
+
+
 def get_channels(response: str) -> list[dict]:
     try:
         channel_data = re.search(r'const\s*(?:_0xD|\bd)ata\s*=\s*(.+?);', response, re.DOTALL).group(1)
@@ -91,7 +100,7 @@ def get_events(response: str) -> list[dict]:
         channels_block = card.select_one(".ev-channels-list")
         for ch_tag in channels_block.select(".agenda-link"):
             ch_tag: BeautifulSoup
-            ch_name = ch_tag.get_text(strip=True).rsplit(" [", 1)[0]
+            ch_name = clean_title(ch_tag.get_text(strip=True))
             ch_id = ch_tag.get("onclick", "").split("'")[1]
             events.append({
                 "title": f"[TNd] {time} {title} [{ch_name}]",

@@ -23,6 +23,7 @@ TIMES_DICT = {
     '16:11': '18:00',
     '16:26': '18:00',
     '16:41': '18:00',
+    '16:56': '18:30',
     '16:57': '18:30',
     '18:26': '20:45',
     '18:41': '20:45',
@@ -98,8 +99,8 @@ def clean_item(item: dict) -> dict:
 
     title = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
     title = re.sub(r' ?\([^)(]+\)', '', title)
-    # if not any(time in title for time in list(dict.fromkeys(TIMES_DICT.values()))):
-    title = fix_time(title)
+    if not any(time in title for time in list(dict.fromkeys(TIMES_DICT.values()))):
+        title = fix_time(title)
     if '.dazn.' in manifest_url:
         title += ' [DAZN]'
     elif '_dazn_' in manifest_url:
