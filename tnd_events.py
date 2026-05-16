@@ -34,12 +34,12 @@ def clean_title(title: str) -> str:
 
 def get_channels(response: str) -> list[dict]:
     try:
-        channel_data = re.search(r'const\s*(?:_0xD|\bd)ata\s*=\s*(.+?);', response, re.DOTALL).group(1)
+        channel_data = re.search(r'const\s*raw.?Obf\s*=\s*(.+?);', response, re.DOTALL).group(1)
     except AttributeError as e:
         print(f'(tnd) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         traceback.print_exc()
         return []
-    channel_data_dict = json.loads(channel_data)
+    channel_data_dict = json.loads(base64.b64decode(channel_data[::-1]).decode("utf-8"))
     matches = re.findall(r'data-l="([^"]+)"\s*data-id="([^"]+)"\s*data-name="([^"]+)"', response)
     matches_dict = {match[1]: {"name": match[2], "category": match[0]} for match in matches}
     channel_data_list = []
