@@ -64,10 +64,15 @@ def get_channels(response: str) -> list[dict]:
             try:  # Case with just keys
                 manifest, kid_key_pair_b64 = re.search(r'(.+?)[\?&]ck=(.+)', stream_info).groups()
             except AttributeError:
-                continue
-        kid_key_pair = unpackKeys(base64decode(kid_key_pair_b64))
+                try:  # Case without keys
+                    manifest, kid_key_pair_b64 = stream_info, None
+                except ValueError:
+                    continue
+
         item["manifest_url"] = manifest
-        item["kid_key_pair"] = hex_to_oct_keys(kid_key_pair) if ',' in kid_key_pair else kid_key_pair
+        if kid_key_pair_b64:
+            kid_key_pair = unpackKeys(base64decode(kid_key_pair_b64))
+            item["kid_key_pair"] = hex_to_oct_keys(kid_key_pair) if ',' in kid_key_pair else kid_key_pair
         del item["p"]
         del item["s"]
         valid_channels.append(item)
@@ -102,6 +107,8 @@ def get_events(response: str) -> list[dict]:
             ch_tag: BeautifulSoup
             ch_name = clean_title(ch_tag.get_text(strip=True))
             ch_id = ch_tag.get("onclick", "").split("'")[1]
+            if int(ch_id) >= 116 and int(ch_id) <= 120:
+                ch_name += " (PT)"
             events.append({
                 "title": f"[TNd] {time} {title} [{ch_name}]",
                 "ev_ch_id": ch_id,
