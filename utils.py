@@ -6,7 +6,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 
 
-def base64decode(data) -> str:
+def base64decode(data: str | bytes) -> str:
     from urllib.parse import unquote
     clean_data = unquote(data)
     return base64.b64decode(clean_data + '=' * (-len(clean_data) % 4)).decode('utf-8')
@@ -60,7 +60,7 @@ def hex_to_oct_keys(hex_string: str) -> str:
     return oct_keys
 
 
-def time_until_expiry(expiry_timestamp):
+def time_until_expiry(expiry_timestamp: int) -> str:
     delta = datetime.fromtimestamp(expiry_timestamp) - datetime.now()
     if delta.total_seconds() <= 0:
         return "already expired"
@@ -79,7 +79,7 @@ def time_until_expiry(expiry_timestamp):
     return "in " + " and ".join(parts)
 
 
-def extract_expiration(input: str):
+def extract_expiration(input: str) -> str:
     import jwt
     from zoneinfo import ZoneInfo
     expiration = None

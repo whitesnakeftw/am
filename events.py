@@ -1,5 +1,6 @@
 import re
 import am
+import nd
 import xe
 import tn
 import tnd_events
@@ -48,6 +49,13 @@ def getAmChannels() -> tuple[str, int]:
     return channels, n
 
 
+def getNdChannels() -> tuple[str, int]:
+    channels_dict = nd.getNdChannelsDict()
+    channels = create_m3u8_playlist(channels_dict)
+    n = len(channels_dict)
+    return channels, n
+
+
 def getXeChannels() -> tuple[str, int]:
     channels_dict, n = xe.getXeEventsDict()
     channels = create_m3u8_playlist(channels_dict)
@@ -83,15 +91,29 @@ def getSportzxChannels() -> tuple[str, int]:
     return channels, n
 
 
-if __name__ == "__main__":
-    am_channels, n_am = getAmChannels()
-    xe_channels, n_xe = getXeChannels()
-    sportzx_channels, n_sportzx = getSportzxChannels()
-    # tn_channels, n_tn = getTnChannels()
-    tnd_response = tnd_events.getTndResponse()
-    tnd_channels, n_tnd = getTndChannels(tnd_response)
-    tnd_sk_channels, n_tnd_sk = getTndSkChannels(tnd_response)
+def build_playlist_from_services(services: list[tuple[str, callable]]) -> tuple[str, list[tuple[str, int]]]:
+    playlist_parts = []
+    counts = []
+    for name, getter in services:
+        channels, n = getter()
+        playlist_parts.append(channels)
+        counts.append((name, n))
+    return ''.join(playlist_parts), counts
 
+
+if __name__ == "__main__":
+    tnd_response = tnd_events.getTndResponse()
+    services = [
+        ("am", getAmChannels),
+        ("nd", getNdChannels),
+        ("xe", getXeChannels),
+        # ("tn", getTnChannels),
+        ("tnd", lambda: getTndChannels(tnd_response)),
+        ("sportzx", getSportzxChannels),
+        ("tnd_sk", lambda: getTndSkChannels(tnd_response)),
+    ]
+
+    playlist, counts = build_playlist_from_services(services)
     with open(OUTFILE, 'w', encoding='utf-8') as f:
-        f.write(f'#EXTM3U url-tvg="{tnd_sk.TVG_URL}"\n\n' + am_channels + xe_channels + tnd_channels + sportzx_channels + tnd_sk_channels)
-    print(f"✅ Playlist {OUTFILE} created with {n_am}(am) + {n_xe}(xe) + {n_tnd}(tnd) + {n_sportzx}(sportzx) + {n_tnd_sk}(tnd_sk) entries.")
+        f.write(f'#EXTM3U url-tvg="{tnd_sk.TVG_URL}"\n\n{playlist}')
+    print(f"✅ Playlist {OUTFILE} created with {' + '.join(f'{n}({name})' for name, n in counts)} entries.")
