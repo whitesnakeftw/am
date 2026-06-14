@@ -7,6 +7,7 @@ TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 TIMES_DICT = {
     '01:31': '03:00',
     '02:31': '03:00',
+    '02:42': '03:00',
     '09:26': '12:00',
     '10:41': '12:00',
     '10:56': '12:30',
@@ -32,6 +33,7 @@ TIMES_DICT = {
     '19:11': '20:45',
     '19:26': '20:45',
     '19:52': '21:00',
+    '23:42': '00:00',
 }
 
 
@@ -61,7 +63,7 @@ def fix_time(title_with_time: str, check_dst: bool = True) -> str:
             hours += 1
     except AttributeError:
         return title_with_time
-    return TIME_RE.sub(f'{hours:02d}:{minutes:02d}', title_with_time)
+    return TIME_RE.sub(f'{hours % 24:02d}:{minutes:02d}', title_with_time)
 
 
 def base64decode(data: str | bytes) -> str:
