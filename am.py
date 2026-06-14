@@ -55,7 +55,7 @@ def clean_item(item: dict) -> dict:
     title = re.sub(r' ?\([^)(]+\)', '', title)
     if not any(time in title for time in list(dict.fromkeys(TIMES_DICT.values()))):
         title = fix_time(title)
-    if '.dazn.' in manifest_url or '.daznedge.' in manifest_url:
+    if any(s in manifest_url for s in ('.dazn.', '.daznedge.', '.indazn.')):
         title += ' [DAZN]'
     elif '_dazn_' in manifest_url:
         title += ' [DAZN-CH]'
@@ -85,6 +85,8 @@ def filter_items(channels_dict: dict) -> list[dict]:
                 if 'CH 01' in item["title"]:
                     break
                 filtered_items.append(clean_item(item))
+        elif 'volley' in item["info"].lower():
+            break
     sorted_by_time = sorted(filtered_items, key=lambda x: extract_time(x["title"]))
     return sorted_by_time
 

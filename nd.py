@@ -10,7 +10,7 @@ SOURCE_B64 = 'aHR0cHM6Ly9ub2RybS5vbmxpbmUvbGlzdC9kei5qc29u'
 
 def process_event(event: dict) -> dict:
     extracted_time = datetime.fromisoformat(event.pop("start")).astimezone(ZoneInfo("Europe/Rome")).strftime("%H:%M")
-    extracted_time = fix_time(extracted_time, check_dst=False)
+    extracted_time = fix_time(extracted_time, check_dst=False, no_add=True)
     broadcaster = ' [DAZN]' if '.dazn.' in event["mpd"] else ''
     event["title"] = f'[ND] {extracted_time} {event.pop("name")}{broadcaster}'
     event["manifest_url"] = event.pop("mpd")

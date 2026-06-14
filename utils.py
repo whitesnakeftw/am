@@ -6,6 +6,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 TIMES_DICT = {
     '01:31': '03:00',
+    '01:42': '03:00',
     '02:31': '03:00',
     '02:42': '03:00',
     '09:26': '12:00',
@@ -29,15 +30,17 @@ TIMES_DICT = {
     '18:26': '20:45',
     '18:41': '20:45',
     '18:42': '20:45',
+    '18:52': '21:00',
     '18:56': '20:45',
     '19:11': '20:45',
     '19:26': '20:45',
     '19:52': '21:00',
+    '22:42': '00:00',
     '23:42': '00:00',
 }
 
 
-def fix_time(title_with_time: str, check_dst: bool = True) -> str:
+def fix_time(title_with_time: str, check_dst: bool = True, no_add: bool = False) -> str:
     def _is_dst() -> bool:
         from datetime import datetime, timedelta
         from zoneinfo import ZoneInfo
@@ -57,9 +60,7 @@ def fix_time(title_with_time: str, check_dst: bool = True) -> str:
         time_str = f'{hours:02d}:{minutes:02d}'
         if time_str in TIMES_DICT.keys():
             hours, minutes = map(int, TIMES_DICT[time_str].split(':'))
-        elif minutes == 0 or minutes == 30:
-            pass
-        else:
+        elif not no_add:
             hours += 1
     except AttributeError:
         return title_with_time
