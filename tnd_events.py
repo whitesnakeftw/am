@@ -107,8 +107,6 @@ def get_events(response: str) -> list[dict]:
             ch_tag: BeautifulSoup
             ch_name = clean_title(ch_tag.get_text(strip=True))
             ch_id = ch_tag.get("onclick", "").split("'")[1]
-            if int(ch_id) >= 116 and int(ch_id) <= 120:
-                ch_name += " (PT)"
             events.append({
                 "title": f"[TNd] {time} {title} [{ch_name}]",
                 "ev_ch_id": ch_id,
@@ -134,6 +132,8 @@ def getTndEventsDict(response) -> list[dict]:
         channel = next((ch for ch in channels if ch["ch_id"] == event["ev_ch_id"]), None)
         if channel:
             merged = {**channel, **event}
+            if '.pt/LIVE' in merged["manifest_url"]:
+                merged["title"] = re.sub(r'(\[DAZN.?\d)\]', r'\1 (PT)]', merged["title"])
             for k in ["ch_id", "ch_title", "ch_category", "ev_ch_id"]:
                 del merged[k]
             result.append(merged)
