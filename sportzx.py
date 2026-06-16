@@ -73,25 +73,23 @@ class SportzxClient:
         return bytes(key), bytes(iv)
 
     def _decrypt_data(self, b64_data: str) -> str:
+        from Crypto.Cipher import AES
+        
         if not b64_data.strip():
             return ""
-
         try:
-            ct = base64.b64decode(b64_data)
+            ct = base64.urlsafe_b64decode(b64_data + '=' * (-len(b64_data) % 4))
             key, iv = self._generate_aes_key_iv(APP_PASSWORD)
-
-            from Crypto.Cipher import AES
-
             cipher = AES.new(key, AES.MODE_CBC, iv)
             pt = cipher.decrypt(ct)
-
             pad = pt[-1]
             if 1 <= pad <= 16:
                 pt = pt[:-pad]
-
             return pt.decode("utf-8", errors="replace")
+        except ValueError:
+            return ""
         except Exception as e:
-            print(f"Decryption error:\n{e.__class__.__module__}.{e.__class__.__name__}: {e}")
+            print(f"Decryption error for {b64_data}:\n{e.__class__.__module__}.{e.__class__.__name__}: {e}")
             traceback.print_exc()
             return ""
 
