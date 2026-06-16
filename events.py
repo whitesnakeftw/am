@@ -1,6 +1,7 @@
 import re
 import am
 import nd
+import nd_alt
 import xe
 import tn
 import tnd_events
@@ -56,6 +57,13 @@ def getNdChannels() -> tuple[str, int]:
     return channels, n
 
 
+def getNdaChannels() -> tuple[str, int]:
+    channels_dict = nd_alt.getNdaChannelsDict()
+    channels = create_m3u8_playlist(channels_dict)
+    n = len(channels_dict)
+    return channels, n
+
+
 def getXeChannels() -> tuple[str, int]:
     channels_dict, n = xe.getXeEventsDict()
     channels = create_m3u8_playlist(channels_dict)
@@ -105,8 +113,9 @@ if __name__ == "__main__":
     tnd_response = tnd_events.getTndResponse()
     services = [
         ("am", getAmChannels),
-        ("nd", getNdChannels),
-        ("xe", getXeChannels),
+        # ("nd", getNdChannels),
+        ("nda", getNdaChannels),
+        # ("xe", getXeChannels),
         # ("tn", getTnChannels),
         ("tnd", lambda: getTndChannels(tnd_response)),
         ("sportzx", getSportzxChannels),
