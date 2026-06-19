@@ -74,7 +74,7 @@ class SportzxClient:
 
     def _decrypt_data(self, b64_data: str) -> str:
         from Crypto.Cipher import AES
-        
+
         if not b64_data.strip():
             return ""
         try:
