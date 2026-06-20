@@ -51,12 +51,12 @@ def filter_entries(entries_list: list[dict]) -> list[dict]:
 def getNdaChannelsDict() -> list[dict]:
     try:
         response = requests.get(base64decode(SOURCE_B64)).text
+        m3u_entries = split_m3u_entries(response)
+        processed_entries = [process_entry(entry) for entry in m3u_entries]
+        filtered_entries = filter_entries(processed_entries)
     except Exception as e:
         print(f'(nda) {e.__class__.__module__}.{e.__class__.__name__}: {e}')
         return []
-    m3u_entries = split_m3u_entries(response)
-    processed_entries = [process_entry(entry) for entry in m3u_entries]
-    filtered_entries = filter_entries(processed_entries)
     return filtered_entries
 
 

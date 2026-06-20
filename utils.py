@@ -2,9 +2,10 @@ import base64
 import re
 from datetime import datetime, timezone
 
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 TIMES_DICT = {
+    '01:12': '02:30',
     '01:31': '03:00',
     '01:42': '03:00',
     '02:31': '03:00',

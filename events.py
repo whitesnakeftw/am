@@ -113,9 +113,9 @@ if __name__ == "__main__":
     tnd_response = tnd_events.getTndResponse()
     services = [
         ("am", getAmChannels),
-        # ("nd", getNdChannels),
-        ("nda", getNdaChannels),
         # ("xe", getXeChannels),
+        # ("nd", getNdChannels),
+        # ("nda", getNdaChannels),
         # ("tn", getTnChannels),
         ("tnd", lambda: getTndChannels(tnd_response)),
         ("sportzx", getSportzxChannels),
