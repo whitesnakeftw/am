@@ -87,8 +87,8 @@ def filter_items(channels_dict: dict) -> list[dict]:
                 filtered_items.append(clean_item(item))
         elif 'volley' in item["info"].lower():
             break
-    sorted_by_time = sorted(filtered_items, key=lambda x: extract_time(x["title"]))
-    return sorted_by_time
+    # sorted_by_time = sorted(filtered_items, key=lambda x: extract_time(x["title"]))
+    return filtered_items
 
 
 if __name__ == "__main__":

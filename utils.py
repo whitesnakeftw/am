@@ -5,11 +5,13 @@ from datetime import datetime, timezone
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 TIMES_DICT = {
+    '00:42': '02:00',
     '01:12': '02:30',
     '01:31': '03:00',
     '01:42': '03:00',
     '02:31': '03:00',
     '02:42': '03:00',
+    '03:42': '05:00',
     '04:42': '06:00',
     '05:42': '06:00',
     '09:26': '12:00',
@@ -39,9 +41,11 @@ TIMES_DICT = {
     '18:56': '20:45',
     '19:11': '20:45',
     '19:26': '20:45',
+    '19:42': '21:00',
     '19:52': '21:00',
+    '20:42': '22:00',
     '22:42': '00:00',
-    '23:42': '00:00',
+    '23:42': '01:00',
 }
 
 
@@ -61,12 +65,12 @@ def fix_time(title_with_time: str, check_dst: bool = True, no_add: bool = False)
     try:
         hours, minutes = map(int, TIME_RE.search(title_with_time).groups())
         if check_dst and _is_dst():
-            hours += 1
+            hours = (hours + 1) % 24
         time_str = f'{hours:02d}:{minutes:02d}'
         if time_str in TIMES_DICT.keys():
             hours, minutes = map(int, TIMES_DICT[time_str].split(':'))
         elif not no_add:
-            hours += 1
+            hours = (hours + 1) % 24
     except AttributeError:
         return title_with_time
     return TIME_RE.sub(f'{hours % 24:02d}:{minutes:02d}', title_with_time)
