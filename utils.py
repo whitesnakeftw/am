@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'
 TIME_RE = re.compile(r'\b(\d{2})[Hh:](\d{2})\b')
 TIMES_DICT = {
+    '00:12': '01:30',
     '00:42': '02:00',
     '01:12': '02:30',
     '01:31': '03:00',
@@ -44,6 +45,8 @@ TIMES_DICT = {
     '19:42': '21:00',
     '19:52': '21:00',
     '20:42': '22:00',
+    '20:52': '23:00',
+    '21:42': '23:00',
     '22:42': '00:00',
     '23:42': '01:00',
 }
