@@ -15,7 +15,7 @@ OUTFILE = "last_minute.m3u8"
 def create_m3u_entry(item: dict) -> str:
     if isinstance(item.get("headers"), dict):
         item["headers"] = '|'.join(f'{k}={v}' for k, v in item["headers"].items())
-    title = item["title"].replace(':', '\N{MODIFIER LETTER COLON}')
+    title = item["title"].replace(':', '\N{MODIFIER LETTER COLON}').replace('|', '\N{HALFWIDTH FORMS LIGHT VERTICAL}')
     title = re.sub(r' {2,}', " ", title)
     tvg_id = f' tvg-id="{item.get("tvg_id", "")}"' if item.get("tvg_id") else ''
     logo = f' tvg-logo="{item.get("logo", "")}"' if item.get("logo") else ''
