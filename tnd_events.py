@@ -102,6 +102,8 @@ def get_events(response: str) -> list[dict]:
                 continue
 
         title = card.select_one(".ev-title").get_text(strip=True)
+        if title.lower().strip() == "live":
+            title = re.search(r'\d{2}:\d{2} (.+)', time_comp).group(1).title()  # Use competition instead
         channels_block = card.select_one(".ev-channels-list")
         for ch_tag in channels_block.select(".agenda-link"):
             ch_tag: BeautifulSoup
