@@ -51,7 +51,8 @@ def clean_item(item: dict) -> dict:
     if len(kid_key_pair) < 64 or re.search(r'^0+:0+$', kid_key_pair):
         kid_key_pair = ""
 
-    title = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", item["title"], flags=re.IGNORECASE).strip()
+    title = re.sub(r'(\d{2}:\d{2}).+\| ?(.+-.+)', r'\1 \2', item["title"])  # Remove string before pipe
+    title = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", title, flags=re.IGNORECASE).strip()
     title = re.sub(r' ?\([^)(]+\)', '', title)
     if not any(time in title for time in list(dict.fromkeys(TIMES_DICT.values()))):
         title = fix_time(title)
