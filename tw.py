@@ -34,20 +34,22 @@ twitch_profiles = [
     "https://www.twitch.tv/marcomerrino",
     "https://www.twitch.tv/enkk",
     "https://www.twitch.tv/andreadel1988",
-    "https://www.twitch.tv/lucakingm",
     "https://www.twitch.tv/patrizio_official",
+    "https://www.twitch.tv/lucakingm",
+    "https://kick.com/lucakingm",
 ]
 
 
 def grab_profile_image(twitch_url):
-    for i in range(0, MAX_RETRIES):
-        response = requests.get(twitch_url, headers={"User-Agent": USER_AGENT}).text
-        match = re.search(r'content="([^"]+?-profile_image-[^"]+?)"', response)
-        if match:
-            return match[1]
-        else:
-            i += 1
-            time.sleep(1)
+    if 'twitch' in twitch_url:
+        for i in range(0, MAX_RETRIES):
+            response = requests.get(twitch_url, headers={"User-Agent": USER_AGENT}).text
+            match = re.search(r'content="([^"]+?-profile_image-[^"]+?)"', response)
+            if match:
+                return match[1]
+            else:
+                i += 1
+                time.sleep(1)
     return ""
 
 
