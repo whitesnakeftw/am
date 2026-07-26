@@ -110,16 +110,16 @@ def build_playlist_from_services(services: list[tuple[str, callable]]) -> tuple[
 
 
 if __name__ == "__main__":
-    tnd_response = tnd_events.getTndResponse()
+    # tnd_response = tnd_events.getTndResponse()
     services = [
         ("am", getAmChannels),
         # ("xe", getXeChannels),
         # ("nd", getNdChannels),
         # ("nda", getNdaChannels),
         # ("tn", getTnChannels),
-        ("tnd", lambda: getTndChannels(tnd_response)),
+        # ("tnd", lambda: getTndChannels(tnd_response)),
         ("sportzx", getSportzxChannels),
-        ("tnd_sk", lambda: getTndSkChannels(tnd_response)),
+        # ("tnd_sk", lambda: getTndSkChannels(tnd_response)),
     ]
 
     playlist, counts = build_playlist_from_services(services)
