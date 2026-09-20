@@ -42,7 +42,10 @@ def clean_item(item: dict) -> dict:
     if "|" in item["myresolve"]:
         kid_key_pair = item["myresolve"].rsplit("|")[1].strip()
     elif "|" in resolve:
-        kid_key_pair = resolve.rsplit("|")[1].strip()
+        resolve_parts = resolve.split("|")
+        kid_key_pair = resolve_parts[1].strip()
+        if len(resolve_parts) > 2:
+            headers = f'User-Agent={resolve_parts[2].strip()}'
     if '=' in kid_key_pair:
         headers = kid_key_pair
         kid_key_pair = ""

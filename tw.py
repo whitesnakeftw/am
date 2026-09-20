@@ -20,6 +20,7 @@ twitch_profiles = [
     "https://www.twitch.tv/tylenul",
     "https://www.twitch.tv/none_cerbero_podcast",
     "https://www.twitch.tv/grenbaud",
+    "https://kick.com/grenbaud",
     "https://www.twitch.tv/davidrubino",
     "https://www.twitch.tv/ilgabbrone",
     "https://www.twitch.tv/homyatol",
@@ -37,6 +38,7 @@ twitch_profiles = [
     "https://www.twitch.tv/patrizio_official",
     "https://www.twitch.tv/lucakingm",
     "https://kick.com/lucakingm",
+    "https://kick.com/larrywheels",
 ]
 
 

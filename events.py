@@ -23,15 +23,17 @@ def create_m3u_entry(item: dict) -> str:
     expiration = extract_expiration(item.get("manifest_url", "") + item.get("headers", ""))
 
     entry = f'#EXTINF:-1{category}{tvg_id}{logo},{title}'
-    if item.get("headers"):
+    if item.get("headers") and item.get("headers").count('=') > 1:
         entry += f"\n#KODIPROP:inputstream.adaptive.stream_headers={item['headers'].replace('|', '&')}"
     if item.get("kid_key_pair"):
         entry += f"\n#KODIPROP:inputstream.adaptive.license_type=clearkey\n#KODIPROP:inputstream.adaptive.license_key={item['kid_key_pair']}"
     if expiration:
         entry += f"\n# Expiration: {expiration}"
     entry += f"\n{item['manifest_url']}"
-    if item.get("headers"):
+    if item.get("headers") and item.get("headers").count('=') > 1:
         entry += f"{'&' if '?' in item['manifest_url'] else '?'}|{item['headers']}"
+    elif item.get("headers"):
+        entry += f"|{item.get('headers', '')}"
     return entry
 
 
