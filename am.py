@@ -55,8 +55,8 @@ def clean_item(item: dict) -> dict:
         kid_key_pair = ""
 
     title = re.sub(r'(\d{2}:\d{2}).+\| ?(.+-.+)', r'\1 \2', item["title"])  # Remove string before pipe
-    title = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", title, flags=re.IGNORECASE).strip()
-    title = re.sub(r' ?\([^)(]+\)', '', title)
+    title = "[AM] " + re.sub(r"\[/?[A-Z]+[^\]]*\]", "", title, flags=re.IGNORECASE)
+    title = re.sub(r' ?\([^)(]+\)', '', title).strip()
     if not any(time in title for time in list(dict.fromkeys(TIMES_DICT.values()))):
         title = fix_time(title)
     if any(s in manifest_url for s in ('.dazn.', '.daznedge.', '.indazn.')):
@@ -86,11 +86,11 @@ def filter_items(channels_dict: dict) -> list[dict]:
         if "myresolve" in item:
             if "amstaff@@" in item["myresolve"] or any(x in item["myresolve"] for x in [".m3u8", ".mpd", ".livx"]):
                 # Avoid linear channels
-                if 'CH 01' in item["title"]:
+                if 'CH 0' in item["title"]:
                     break
                 filtered_items.append(clean_item(item))
-        elif 'volley' in item["info"].lower():
-            break
+        # elif 'volley' in item["info"].lower():
+        #     break
     # sorted_by_time = sorted(filtered_items, key=lambda x: extract_time(x["title"]))
     return filtered_items
 
