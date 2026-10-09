@@ -164,9 +164,9 @@ def extract_expiration(input: str) -> str:
     import jwt
     from zoneinfo import ZoneInfo
     expiration = None
-    match_jwt = re.search(r'\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b', input, re.MULTILINE)
+    match_jwt = re.search(r'(?:\b|%40)(eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)(?:\b|%2[fF])', input, re.MULTILINE)
     if match_jwt:
-        token = match_jwt[0]
+        token = match_jwt[1]
         expiration = jwt.decode(token, options={"verify_signature": False}).get('exp')
     else:
         match_expiration = re.search(r'(?<!\d)(?<!st%3D)(17\d{8})(?!\d)', input)
