@@ -1,10 +1,9 @@
-import base64
 import json
 import binascii
 import re
 import requests
 import traceback
-from utils import hex_to_oct_keys, extract_time, fix_time, TIMES_DICT
+from utils import hex_to_oct_keys, fix_time, base64decode, TIMES_DICT
 
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
 PASSWORD = "MandraKodi3"
@@ -29,11 +28,19 @@ def getAmChannelsDict() -> dict:
         return []
 
 
+def isStringBase64(s: str) -> bool:
+    try:
+        base64decode(s)
+        return True
+    except (binascii.Error, UnicodeDecodeError):
+        return False
+
+
 def clean_item(item: dict) -> dict:
     headers = None
     manifest_reference = item["myresolve"].rsplit("@@")[1].rsplit("|")[0]
     try:
-        resolve = base64.b64decode(manifest_reference).decode("utf-8")
+        resolve = base64decode(manifest_reference)
     except (binascii.Error, UnicodeDecodeError):
         resolve = manifest_reference
 
@@ -44,6 +51,8 @@ def clean_item(item: dict) -> dict:
     elif "|" in resolve:
         resolve_parts = resolve.split("|")
         kid_key_pair = resolve_parts[1].strip()
+        if isStringBase64(kid_key_pair):
+            kid_key_pair = base64decode(kid_key_pair)
         if len(resolve_parts) > 2:
             headers = f'User-Agent={resolve_parts[2].strip()}'
     if '=' in kid_key_pair:
@@ -90,7 +99,7 @@ def filter_items(channels_dict: dict) -> list[dict]:
                     break
                 filtered_items.append(clean_item(item))
         # elif 'volley' in item["info"].lower():
-        #     break
+        #     continue
     # sorted_by_time = sorted(filtered_items, key=lambda x: extract_time(x["title"]))
     return filtered_items
 
