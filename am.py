@@ -20,7 +20,7 @@ def getAmChannelsDict() -> dict:
         sport_dict = requests.get(sport_url, headers=HEADERS).json()
         last_minute_url = next((i for i in sport_dict["items"] if i["info"].lower() == 'last minute'))["externallink"]
         last_minute_dict = requests.get(last_minute_url, headers=HEADERS).json()
-        # print(last_minute_dict)
+        print('DEBUG:\n', last_minute_dict)
         return last_minute_dict
     except Exception as e:
         print(f'(am) {e.__class__.__module__}.{e.__class__.__name__}: {e}')

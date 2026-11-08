@@ -186,6 +186,8 @@ def get_channels_list(channels: list[tuple[str, str, str]]) -> list[dict]:
         if url is None:
             print(f"⚠️ Decode failed for {ch_id}")
             continue
+        else:
+            print(f"✅ Decoded {title}: {url} (key_id: {key_id}, key: {key})")
         meta = match_channel(title)
         entry = {
             "title": meta["nome"],
