@@ -96,7 +96,7 @@ def match_channel(title):
 
 
 def resolve_channel(channel_id):
-    res = requests.get(f'https://test34344.herokuapp.com/filter.php?numTest=A1A159&id={channel_id}', headers={"User-Agent": MK_USER_AGENT})
+    res = requests.get(f'https://test34344.herokuapp.com/filter.php?numTest=A1A159S&id={channel_id}', headers={"User-Agent": MK_USER_AGENT})
     try:
         base64_data = res.json()["data"]
     except KeyError:
