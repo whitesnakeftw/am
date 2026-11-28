@@ -3,10 +3,14 @@ import binascii
 import re
 import requests
 import traceback
+import os
 from utils import hex_to_oct_keys, fix_time, base64decode, TIMES_DICT
+from dotenv import load_dotenv
+
+load_dotenv()
 
 HOME_URL = "https://test34344.herokuapp.com/filter.php"
-PASSWORD = "MandraKodi3"
+PASSWORD = os.getenv("MK_PW")
 DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
 MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"

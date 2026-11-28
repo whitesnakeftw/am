@@ -2,7 +2,11 @@ import base64
 import json
 import re
 import requests
+import os
 from events import create_m3u8_playlist
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DEBUG = False
 
@@ -10,7 +14,7 @@ OUTFILE = "sky.m3u8"
 TVG_URL = "https://github.com/whitesnakeftw/epg/releases/download/1.0.0/super.guide.xml.gz"
 AMSTAFF_URL = "https://test34344.herokuapp.com/filter.php"
 
-PASSWORD = "MandraKodi3"
+PASSWORD = os.getenv("MK_PW")
 DEVICE_ID = "2K1WPN"
 VERSION = "2.0.0"
 MK_USER_AGENT = f"MandraKodi2@@{VERSION}@@{PASSWORD}@@{DEVICE_ID}"
@@ -53,6 +57,7 @@ CHANNELS_DB = {
     "adventure": {"nome": "Sky Adventure", "logo": "https://pixel.disco.nowtv.it/logo/skychb_961_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Intrattenimento"},
     "nature": {"nome": "Sky Nature", "logo": "https://pixel.disco.nowtv.it/logo/skychb_695_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Intrattenimento"},
     "arte": {"nome": "Sky Arte", "logo": "https://pixel.disco.nowtv.it/logo/skychb_74_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Intrattenimento"},
+    "voices": {"nome": "Sky Voices", "logo": "https://pixel.disco.nowtv.it/logo/skychb_567_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Intrattenimento"},
     "comedycentral": {"nome": "Comedy Central", "logo": "https://pixel.disco.nowtv.it/logo/skychb_404_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Intrattenimento"},
     "mtv": {"nome": "MTV", "logo": "https://pixel.disco.nowtv.it/logo/skychb_763_lightnow/LOGO_CHANNEL_DARK/4000?language=it-IT&proposition=NOWOTT", "group": "Sky Intrattenimento"},
 
@@ -190,7 +195,7 @@ def get_channels_list(channels: list[tuple[str, str, str]]) -> list[dict]:
             print(f"✅ Decoded {title}: {url} (key_id: {key_id}, key: {key})")
         meta = match_channel(title)
         entry = {
-            "title": meta["nome"],
+            "title": meta.get("nome", title),
             "manifest_url": url,
             "kid_key_pair": f"{key_id}:{key}",
             "category": meta["group"] + ' (Am)',
