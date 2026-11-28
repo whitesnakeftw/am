@@ -192,6 +192,7 @@ def get_channels_list(channels: list[tuple[str, str, str]]) -> list[dict]:
             print(f"⚠️ Decode failed for {ch_id}")
             continue
         else:
+            url = re.sub(rf"\?usr={PASSWORD}", "", url)
             print(f"✅ Decoded {title}: {url} (key_id: {key_id}, key: {key})")
         meta = match_channel(title)
         entry = {
